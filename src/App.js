@@ -60,6 +60,16 @@ const [tasks, setTasks] = useState([]);
     time: ''
   });
 
+useEffect(() => {
+  if (jobs.length > 0 && !jobs.find(j => j.id === newTask.jobId)) {
+    setNewTask(prev => ({
+      ...prev,
+      jobId: jobs[0].id
+    }));
+  }
+}, [jobs]);
+  
+
   const [configForm, setConfigForm] = useState({
     apiKey: '',
     authDomain: '',
@@ -209,23 +219,26 @@ const [tasks, setTasks] = useState([]);
     setIsOnline(false);
   };
 
-  const addTask = () => {
-    if (newTask.title.trim()) {
-      setTasks([...tasks, { 
-        id: Date.now(), 
-        ...newTask, 
-        completed: false 
-      }]);
-      setNewTask({
-        title: '',
-        jobId: jobs[0]?.id || 1,
-        type: 'projeto',
-        date: new Date().toISOString().split('T')[0],
-        time: ''
-      });
-      setShowAddTask(false);
-    }
-  };
+const addTask = () => {
+  if (newTask.title.trim()) {
+    const validJobId = jobs.find(j => j.id === newTask.jobId) ? newTask.jobId : jobs[0]?.id;
+    
+    setTasks([...tasks, { 
+      id: Date.now(), 
+      ...newTask,
+      jobId: validJobId,
+      completed: false 
+    }]);
+    setNewTask({
+      title: '',
+      jobId: jobs[0]?.id || 1,
+      type: 'projeto',
+      date: new Date().toISOString().split('T')[0],
+      time: ''
+    });
+    setShowAddTask(false);
+  }
+};
 
   const toggleTask = (id) => {
     setTasks(tasks.map(task => 
