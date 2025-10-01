@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff } from 'lucide-react';
+import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs } from './firebase';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('daily');
@@ -18,12 +19,17 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
   
+  const [userId, setUserId] = useState(() => {
+    return localStorage.getItem('userId') || '';
+  });
+  
   const [userEmail, setUserEmail] = useState(() => {
     return localStorage.getItem('userEmail') || '';
   });
   
   const [isOnline, setIsOnline] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState('');
   
   const [jobs, setJobs] = useState(() => {
     const saved = localStorage.getItem('jobs');
@@ -48,11 +54,7 @@ export default function App() {
   
   const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem('tasks');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, title: 'Reunião com cliente', jobId: 1, type: 'atendimento', date: '2025-10-01', time: '14:00', completed: false },
-      { id: 2, title: 'Desenvolver feature X', jobId: 1, type: 'projeto', date: '2025-10-01', completed: false },
-      { id: 3, title: 'Revisar proposta', jobId: 3, type: 'freelance', date: '2025-10-02', completed: false }
-    ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [newTask, setNewTask] = useState({
@@ -74,6 +76,7 @@ export default function App() {
     password: ''
   });
 
+  // Salvar dados localmente
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
@@ -93,27 +96,73 @@ export default function App() {
   }, [userEmail]);
 
   useEffect(() => {
-    if (firebaseConfig && userEmail) {
-      syncWithFirebase();
+    if (userId) {
+      localStorage.setItem('userId', userId);
     }
-  }, [tasks, jobs, firebaseConfig, userEmail]);
+  }, [userId]);
 
-  const syncWithFirebase = async () => {
-    if (!firebaseConfig || !userEmail || isSyncing) return;
-    
-    setIsSyncing(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+  // Inicializar Firebase e carregar dados
+  useEffect(() => {
+    if (firebaseConfig && userId) {
+      initializeAndSync();
+    }
+  }, [firebaseConfig, userId]);
+
+  const initializeAndSync = async () => {
+    const initialized = initializeFirebase(firebaseConfig);
+    if (initialized) {
       setIsOnline(true);
-    } catch (error) {
-      console.error('Erro ao sincronizar:', error);
-      setIsOnline(false);
-    } finally {
-      setIsSyncing(false);
+      
+      // Carregar dados da nuvem
+      const cloudTasks = await loadTasks(userId);
+      const cloudJobs = await loadJobs(userId);
+      
+      if (cloudTasks) {
+        setTasks(cloudTasks);
+      }
+      if (cloudJobs) {
+        setJobs(cloudJobs);
+      }
+      
+      // Subscrever para mudanças em tempo real
+      const unsubscribeTasks = subscribeToTasks(userId, (newTasks) => {
+        setTasks(newTasks);
+      });
+      
+      const unsubscribeJobs = subscribeToJobs(userId, (newJobs) => {
+        setJobs(newJobs);
+      });
+      
+      return () => {
+        unsubscribeTasks();
+        unsubscribeJobs();
+      };
     }
   };
 
-  const saveFirebaseConfig = () => {
+  // Sincronizar mudanças com Firebase
+  useEffect(() => {
+    if (isOnline && userId && tasks.length > 0) {
+      const syncTimeout = setTimeout(() => {
+        saveTasks(userId, tasks);
+      }, 1000);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [tasks, isOnline, userId]);
+
+  useEffect(() => {
+    if (isOnline && userId && jobs.length > 0) {
+      const syncTimeout = setTimeout(() => {
+        saveJobs(userId, jobs);
+      }, 1000);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [jobs, isOnline, userId]);
+
+  const saveFirebaseConfig = async () => {
+    setSyncError('');
+    setIsSyncing(true);
+    
     const config = {
       apiKey: configForm.apiKey,
       authDomain: configForm.authDomain,
@@ -123,18 +172,41 @@ export default function App() {
       appId: configForm.appId
     };
     
-    localStorage.setItem('firebaseConfig', JSON.stringify(config));
-    setFirebaseConfig(config);
-    setUserEmail(configForm.email);
-    setShowSetup(false);
-    setIsOnline(true);
+    const initialized = initializeFirebase(config);
+    if (!initialized) {
+      setSyncError('Erro ao conectar com Firebase. Verifique as configurações.');
+      setIsSyncing(false);
+      return;
+    }
+    
+    const result = await loginUser(configForm.email, configForm.password);
+    if (result.success) {
+      localStorage.setItem('firebaseConfig', JSON.stringify(config));
+      setFirebaseConfig(config);
+      setUserEmail(configForm.email);
+      setUserId(result.user.uid);
+      
+      // Enviar dados locais para a nuvem
+      await saveTasks(result.user.uid, tasks);
+      await saveJobs(result.user.uid, jobs);
+      
+      setIsOnline(true);
+      setShowSetup(false);
+      setSyncError('');
+    } else {
+      setSyncError('Erro no login: ' + result.error);
+    }
+    
+    setIsSyncing(false);
   };
 
   const disconnectFirebase = () => {
     localStorage.removeItem('firebaseConfig');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('userId');
     setFirebaseConfig(null);
     setUserEmail('');
+    setUserId('');
     setIsOnline(false);
   };
 
@@ -685,15 +757,20 @@ export default function App() {
                   <p className="font-medium mb-2">📝 Como configurar:</p>
                   <ol className="list-decimal list-inside space-y-1 text-xs">
                     <li>Acesse <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="underline">console.firebase.google.com</a></li>
-                    <li>Crie um novo projeto (ou use um existente)</li>
-                    <li>Vá em "Configurações do projeto" → "Geral"</li>
-                    <li>Role até "Seus aplicativos" e clique em "Web"</li>
-                    <li>Copie as configurações do Firebase e cole abaixo</li>
-                    <li>Ative "Authentication" → "Email/Password" no Firebase</li>
-                    <li>Ative "Firestore Database" no Firebase</li>
-                    <li>Crie um usuário em "Authentication" e use aqui</li>
+                    <li>No Firebase Console, vá em "Configurações do projeto" → "Geral"</li>
+                    <li>Role até "Seus aplicativos" e clique no ícone Web</li>
+                    <li>Copie as configurações e cole abaixo</li>
+                    <li>Em "Authentication", ative "Email/Password"</li>
+                    <li>Em "Firestore Database", crie um banco de dados</li>
+                    <li>Em "Authentication" → "Users", adicione um usuário</li>
                   </ol>
                 </div>
+
+                {syncError && (
+                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-50 text-red-800'}`}>
+                    <p className="text-sm">{syncError}</p>
+                  </div>
+                )}
 
                 <input
                   type="text"
@@ -756,7 +833,7 @@ export default function App() {
                 />
 
                 <div className={`border-t pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Credenciais de acesso:</p>
+                  <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Credenciais de acesso (usuário do Firebase):</p>
                   <input
                     type="email"
                     placeholder="Email"
@@ -780,12 +857,16 @@ export default function App() {
                 <div className="flex gap-3">
                   <button
                     onClick={saveFirebaseConfig}
-                    className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                    disabled={isSyncing}
+                    className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50"
                   >
-                    Conectar
+                    {isSyncing ? 'Conectando...' : 'Conectar'}
                   </button>
                   <button
-                    onClick={() => setShowSetup(false)}
+                    onClick={() => {
+                      setShowSetup(false);
+                      setSyncError('');
+                    }}
                     className={`px-6 py-3 rounded-lg transition-colors ${
                       darkMode 
                         ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
