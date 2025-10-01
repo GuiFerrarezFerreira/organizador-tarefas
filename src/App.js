@@ -105,6 +105,8 @@ const [tasks, setTasks] = useState([]);
       if (cloudJobs) {
         setJobs(cloudJobs);
       }
+
+      setIsLoaded(true);
       
       // Subscrever para mudanças em tempo real
       const unsubscribeTasks = subscribeToTasks(userId, (newTasks) => {
@@ -122,24 +124,26 @@ const [tasks, setTasks] = useState([]);
     }
   };
 
-  // Sincronizar mudanças com Firebase
+// Sincronizar mudanças com Firebase
+  const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
-    if (isOnline && userId && tasks.length > 0) {
+    if (isOnline && userId && isLoaded) {
       const syncTimeout = setTimeout(() => {
         saveTasks(userId, tasks);
       }, 1000);
       return () => clearTimeout(syncTimeout);
     }
-  }, [tasks, isOnline, userId]);
+  }, [tasks, isOnline, userId, isLoaded]);
 
   useEffect(() => {
-    if (isOnline && userId && jobs.length > 0) {
+    if (isOnline && userId && isLoaded) {
       const syncTimeout = setTimeout(() => {
         saveJobs(userId, jobs);
       }, 1000);
       return () => clearTimeout(syncTimeout);
     }
-  }, [jobs, isOnline, userId]);
+  }, [jobs, isOnline, userId, isLoaded]);
 
   const saveFirebaseConfig = async () => {
     setSyncError('');
