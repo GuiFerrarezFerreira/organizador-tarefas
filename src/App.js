@@ -31,14 +31,12 @@ export default function App() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState('');
   
-  const [jobs, setJobs] = useState(() => {
-    const saved = localStorage.getItem('jobs');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: 'Trabalho Fixo 1', color: 'bg-blue-100 text-blue-700' },
-      { id: 2, name: 'Trabalho Fixo 2', color: 'bg-green-100 text-green-700' },
-      { id: 3, name: 'Freelancers', color: 'bg-purple-100 text-purple-700' }
-    ];
-  });
+const [jobs, setJobs] = useState([
+  { id: 1, name: 'Trabalho Fixo 1', color: 'bg-blue-100 text-blue-700' },
+  { id: 2, name: 'Trabalho Fixo 2', color: 'bg-green-100 text-green-700' },
+  { id: 3, name: 'Freelancers', color: 'bg-purple-100 text-purple-700' }
+]);
+
   const [newJobName, setNewJobName] = useState('');
   
   const colors = [
@@ -52,10 +50,7 @@ export default function App() {
     'bg-teal-100 text-teal-700'
   ];
   
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem('tasks');
-    return saved ? JSON.parse(saved) : [];
-  });
+const [tasks, setTasks] = useState([]);
 
   const [newTask, setNewTask] = useState({
     title: '',
@@ -124,6 +119,8 @@ export default function App() {
         setJobs(cloudJobs);
       }
       
+      setIsLoaded(true); 
+      
       // Subscrever para mudanças em tempo real
       const unsubscribeTasks = subscribeToTasks(userId, (newTasks) => {
         setTasks(newTasks);
@@ -140,24 +137,26 @@ export default function App() {
     }
   };
 
-  // Sincronizar mudanças com Firebase
+// Sincronizar mudanças com Firebase
+  const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
-    if (isOnline && userId && tasks.length > 0) {
+    if (isOnline && userId && isLoaded) {
       const syncTimeout = setTimeout(() => {
         saveTasks(userId, tasks);
       }, 1000);
       return () => clearTimeout(syncTimeout);
     }
-  }, [tasks, isOnline, userId]);
+  }, [tasks, isOnline, userId, isLoaded]);
 
   useEffect(() => {
-    if (isOnline && userId && jobs.length > 0) {
+    if (isOnline && userId && isLoaded) {
       const syncTimeout = setTimeout(() => {
         saveJobs(userId, jobs);
       }, 1000);
       return () => clearTimeout(syncTimeout);
     }
-  }, [jobs, isOnline, userId]);
+  }, [jobs, isOnline, userId, isLoaded]);
 
   const saveFirebaseConfig = async () => {
     setSyncError('');
