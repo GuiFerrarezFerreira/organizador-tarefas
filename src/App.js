@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag } from 'lucide-react';
+import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag, Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags } from './firebase';
 
 export default function App() {
@@ -9,6 +9,7 @@ export default function App() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [showManageJobs, setShowManageJobs] = useState(false);
   const [showManageTags, setShowManageTags] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -66,6 +67,17 @@ export default function App() {
   const [newTagName, setNewTagName] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [filterByTags, setFilterByTags] = useState([]);
+  
+  // Estados de busca e filtros
+  const [searchQuery, setSearchQuery] = useState('');
+  const [advancedFilters, setAdvancedFilters] = useState({
+    status: 'all', // all, completed, pending
+    type: 'all', // all, projeto, atendimento, freelance
+    jobId: 'all',
+    dateRange: 'all', // all, today, week, month, custom
+    customStartDate: '',
+    customEndDate: ''
+  });
   
   const colors = [
     'bg-blue-100 text-blue-700',
@@ -161,6 +173,38 @@ export default function App() {
       localStorage.setItem('userId', userId);
     }
   }, [userId]);
+
+  // Atalhos de teclado
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Ctrl/Cmd + K para busca
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.querySelector('input[placeholder="Buscar tarefas..."]')?.focus();
+      }
+      // Ctrl/Cmd + F para filtros
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setShowAdvancedFilters(!showAdvancedFilters);
+      }
+      // Ctrl/Cmd + N para nova tarefa
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        setShowAddTask(true);
+      }
+      // ESC para fechar modais
+      if (e.key === 'Escape') {
+        setShowAddTask(false);
+        setShowManageJobs(false);
+        setShowManageTags(false);
+        setShowAdvancedFilters(false);
+        setShowSetup(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showAdvancedFilters]);
 
   // Inicializar Firebase e carregar dados
   useEffect(() => {
@@ -502,7 +546,66 @@ export default function App() {
       });
     }
     
+    // Aplicar busca por texto
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(query) ||
+        getJobName(task.jobId).toLowerCase().includes(query) ||
+        task.type.toLowerCase().includes(query) ||
+        (task.tags || []).some(tagId => 
+          getTagName(tagId).toLowerCase().includes(query)
+        )
+      );
+    }
+    
+    // Aplicar filtros avançados
+    if (advancedFilters.status !== 'all') {
+      filtered = filtered.filter(task => {
+        if (advancedFilters.status === 'completed') return task.completed;
+        if (advancedFilters.status === 'pending') return !task.completed;
+        return true;
+      });
+    }
+    
+    if (advancedFilters.type !== 'all') {
+      filtered = filtered.filter(task => task.type === advancedFilters.type);
+    }
+    
+    if (advancedFilters.jobId !== 'all') {
+      filtered = filtered.filter(task => task.jobId === parseInt(advancedFilters.jobId));
+    }
+    
+    if (advancedFilters.dateRange === 'custom' && advancedFilters.customStartDate && advancedFilters.customEndDate) {
+      filtered = filtered.filter(task => {
+        return task.date >= advancedFilters.customStartDate && task.date <= advancedFilters.customEndDate;
+      });
+    }
+    
     return filtered;
+  };
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setFilterByTags([]);
+    setAdvancedFilters({
+      status: 'all',
+      type: 'all',
+      jobId: 'all',
+      dateRange: 'all',
+      customStartDate: '',
+      customEndDate: ''
+    });
+    addNotification('Filtros limpos', 'info');
+  };
+
+  const hasActiveFilters = () => {
+    return searchQuery.trim() !== '' ||
+           filterByTags.length > 0 ||
+           advancedFilters.status !== 'all' ||
+           advancedFilters.type !== 'all' ||
+           advancedFilters.jobId !== 'all' ||
+           advancedFilters.dateRange === 'custom';
   };
 
   const filteredTasks = filterTasks();
@@ -637,6 +740,154 @@ export default function App() {
 
         {activeTab === 'daily' && (
           <div className="mb-6 space-y-3">
+            {/* Barra de busca */}
+            <div className="flex gap-2">
+              <div className={`flex-1 flex items-center gap-2 px-4 py-2 rounded-lg border ${
+                darkMode 
+                  ? 'bg-gray-800 border-gray-600' 
+                  : 'bg-white border-gray-300'
+              }`}>
+                <Search size={18} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
+                <input
+                  type="text"
+                  placeholder="Buscar tarefas..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`flex-1 bg-transparent border-none outline-none text-sm ${
+                    darkMode ? 'text-gray-200 placeholder-gray-400' : 'text-gray-800 placeholder-gray-500'
+                  }`}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className={darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                  showAdvancedFilters || hasActiveFilters()
+                    ? 'bg-blue-500 text-white'
+                    : darkMode 
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                <SlidersHorizontal size={16} />
+                Filtros
+              </button>
+            </div>
+
+            {/* Filtros avançados */}
+            {showAdvancedFilters && (
+              <div className={`p-4 rounded-lg space-y-3 ${darkMode ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Status</label>
+                    <select
+                      value={advancedFilters.status}
+                      onChange={(e) => setAdvancedFilters({...advancedFilters, status: e.target.value})}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <option value="all">Todas</option>
+                      <option value="pending">Pendentes</option>
+                      <option value="completed">Concluídas</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Tipo</label>
+                    <select
+                      value={advancedFilters.type}
+                      onChange={(e) => setAdvancedFilters({...advancedFilters, type: e.target.value})}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="projeto">Projeto</option>
+                      <option value="atendimento">Atendimento</option>
+                      <option value="freelance">Freelance</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Trabalho</label>
+                    <select
+                      value={advancedFilters.jobId}
+                      onChange={(e) => setAdvancedFilters({...advancedFilters, jobId: e.target.value})}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <option value="all">Todos</option>
+                      {jobs.map(job => (
+                        <option key={job.id} value={job.id}>{job.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Período</label>
+                    <select
+                      value={advancedFilters.dateRange}
+                      onChange={(e) => setAdvancedFilters({...advancedFilters, dateRange: e.target.value})}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="custom">Personalizado</option>
+                    </select>
+                  </div>
+                </div>
+                
+                {advancedFilters.dateRange === 'custom' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Data início</label>
+                      <input
+                        type="date"
+                        value={advancedFilters.customStartDate}
+                        onChange={(e) => setAdvancedFilters({...advancedFilters, customStartDate: e.target.value})}
+                        className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                            : 'bg-white border-gray-300'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Data fim</label>
+                      <input
+                        type="date"
+                        value={advancedFilters.customEndDate}
+                        onChange={(e) => setAdvancedFilters({...advancedFilters, customEndDate: e.target.value})}
+                        className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                            : 'bg-white border-gray-300'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 onClick={() => setViewMode('daily')}
@@ -706,17 +957,156 @@ export default function App() {
                       onClick={() => setFilterByTags([])}
                       className="px-3 py-1 rounded text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200"
                     >
-                      Limpar filtros
+                      Limpar tags
                     </button>
                   )}
                 </div>
               </div>
+            )}
+
+            {hasActiveFilters() && (
+              <button
+                onClick={clearAllFilters}
+                className="w-full px-4 py-2 rounded-lg text-sm bg-red-100 text-red-700 hover:bg-red-200 transition-colors font-medium"
+              >
+                Limpar todos os filtros
+              </button>
             )}
           </div>
         )}
 
         {activeTab !== 'daily' && (
           <div className="mb-6 space-y-3">
+            {/* Barra de busca */}
+            <div className="flex gap-2">
+              <div className={`flex-1 flex items-center gap-2 px-4 py-2 rounded-lg border ${
+                darkMode 
+                  ? 'bg-gray-800 border-gray-600' 
+                  : 'bg-white border-gray-300'
+              }`}>
+                <Search size={18} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
+                <input
+                  type="text"
+                  placeholder="Buscar tarefas..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`flex-1 bg-transparent border-none outline-none text-sm ${
+                    darkMode ? 'text-gray-200 placeholder-gray-400' : 'text-gray-800 placeholder-gray-500'
+                  }`}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className={darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                  showAdvancedFilters || hasActiveFilters()
+                    ? 'bg-blue-500 text-white'
+                    : darkMode 
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                <SlidersHorizontal size={16} />
+                Filtros
+              </button>
+            </div>
+
+            {/* Filtros avançados */}
+            {showAdvancedFilters && (
+              <div className={`p-4 rounded-lg space-y-3 ${darkMode ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Status</label>
+                    <select
+                      value={advancedFilters.status}
+                      onChange={(e) => setAdvancedFilters({...advancedFilters, status: e.target.value})}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <option value="all">Todas</option>
+                      <option value="pending">Pendentes</option>
+                      <option value="completed">Concluídas</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Tipo</label>
+                    <select
+                      value={advancedFilters.type}
+                      onChange={(e) => setAdvancedFilters({...advancedFilters, type: e.target.value})}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="projeto">Projeto</option>
+                      <option value="atendimento">Atendimento</option>
+                      <option value="freelance">Freelance</option>
+                    </select>
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Período</label>
+                    <select
+                      value={advancedFilters.dateRange}
+                      onChange={(e) => setAdvancedFilters({...advancedFilters, dateRange: e.target.value})}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="custom">Personalizado</option>
+                    </select>
+                  </div>
+                </div>
+                
+                {advancedFilters.dateRange === 'custom' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Data início</label>
+                      <input
+                        type="date"
+                        value={advancedFilters.customStartDate}
+                        onChange={(e) => setAdvancedFilters({...advancedFilters, customStartDate: e.target.value})}
+                        className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                            : 'bg-white border-gray-300'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Data fim</label>
+                      <input
+                        type="date"
+                        value={advancedFilters.customEndDate}
+                        onChange={(e) => setAdvancedFilters({...advancedFilters, customEndDate: e.target.value})}
+                        className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                            : 'bg-white border-gray-300'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 onClick={() => setViewMode('daily')}
@@ -786,16 +1176,33 @@ export default function App() {
                       onClick={() => setFilterByTags([])}
                       className="px-3 py-1 rounded text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200"
                     >
-                      Limpar filtros
+                      Limpar tags
                     </button>
                   )}
                 </div>
               </div>
             )}
+
+            {hasActiveFilters() && (
+              <button
+                onClick={clearAllFilters}
+                className="w-full px-4 py-2 rounded-lg text-sm bg-red-100 text-red-700 hover:bg-red-200 transition-colors font-medium"
+              >
+                Limpar todos os filtros
+              </button>
+            )}
           </div>
         )}
 
         <div className="space-y-3">
+          {hasActiveFilters() && (
+            <div className={`px-4 py-2 rounded-lg text-sm ${
+              darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'
+            }`}>
+              {sortedTasks.length} {sortedTasks.length === 1 ? 'tarefa encontrada' : 'tarefas encontradas'}
+            </div>
+          )}
+          
           {sortedTasks.map(task => (
             <div
               key={task.id}
