@@ -261,5 +261,127 @@ export const subscribeToTags = (userId, callback, errorCallback) => {
   );
 };
 
+export const saveTransactions = async (userId, transactions) => {
+  try {
+    await setDoc(doc(db, 'users', userId, 'data', 'transactions'), { 
+      transactions,
+      lastUpdated: new Date().toISOString()
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao salvar transações:', error);
+    
+    let errorMessage = 'Erro ao salvar transações';
+    
+    if (error.code === 'permission-denied') {
+      errorMessage = 'Sem permissão para salvar';
+    } else if (error.code === 'unavailable') {
+      errorMessage = 'Servidor indisponível. Dados salvos localmente';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const loadTransactions = async (userId) => {
+  try {
+    const docSnap = await getDoc(doc(db, 'users', userId, 'data', 'transactions'));
+    if (docSnap.exists()) {
+      return { success: true, data: docSnap.data().transactions };
+    }
+    return { success: true, data: null };
+  } catch (error) {
+    console.error('Erro ao carregar transações:', error);
+    
+    let errorMessage = 'Erro ao carregar transações';
+    
+    if (error.code === 'permission-denied') {
+      errorMessage = 'Sem permissão para acessar dados';
+    } else if (error.code === 'unavailable') {
+      errorMessage = 'Servidor indisponível';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const subscribeToTransactions = (userId, callback, errorCallback) => {
+  return onSnapshot(
+    doc(db, 'users', userId, 'data', 'transactions'),
+    (doc) => {
+      if (doc.exists()) {
+        callback(doc.data().transactions);
+      }
+    },
+    (error) => {
+      console.error('Erro na subscrição de transações:', error);
+      if (errorCallback) {
+        errorCallback('Erro ao sincronizar transações em tempo real');
+      }
+    }
+  );
+};
+
+export const saveFinanceCategories = async (userId, categories) => {
+  try {
+    await setDoc(doc(db, 'users', userId, 'data', 'financeCategories'), { 
+      categories,
+      lastUpdated: new Date().toISOString()
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao salvar categorias financeiras:', error);
+    
+    let errorMessage = 'Erro ao salvar categorias';
+    
+    if (error.code === 'permission-denied') {
+      errorMessage = 'Sem permissão para salvar';
+    } else if (error.code === 'unavailable') {
+      errorMessage = 'Servidor indisponível. Dados salvos localmente';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const loadFinanceCategories = async (userId) => {
+  try {
+    const docSnap = await getDoc(doc(db, 'users', userId, 'data', 'financeCategories'));
+    if (docSnap.exists()) {
+      return { success: true, data: docSnap.data().categories };
+    }
+    return { success: true, data: null };
+  } catch (error) {
+    console.error('Erro ao carregar categorias financeiras:', error);
+    
+    let errorMessage = 'Erro ao carregar categorias';
+    
+    if (error.code === 'permission-denied') {
+      errorMessage = 'Sem permissão para acessar dados';
+    } else if (error.code === 'unavailable') {
+      errorMessage = 'Servidor indisponível';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const subscribeToFinanceCategories = (userId, callback, errorCallback) => {
+  return onSnapshot(
+    doc(db, 'users', userId, 'data', 'financeCategories'),
+    (doc) => {
+      if (doc.exists()) {
+        callback(doc.data().categories);
+      }
+    },
+    (error) => {
+      console.error('Erro na subscrição de categorias financeiras:', error);
+      if (errorCallback) {
+        errorCallback('Erro ao sincronizar categorias em tempo real');
+      }
+    }
+  );
+};
+
 export const getAuth2 = () => auth;
 export const getDb = () => db;
