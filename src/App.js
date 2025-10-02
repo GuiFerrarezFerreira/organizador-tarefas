@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle } from 'lucide-react';
-import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs } from './firebase';
+import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag } from 'lucide-react';
+import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags } from './firebase';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('daily');
@@ -8,6 +8,7 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [showAddTask, setShowAddTask] = useState(false);
   const [showManageJobs, setShowManageJobs] = useState(false);
+  const [showManageTags, setShowManageTags] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -52,7 +53,19 @@ export default function App() {
     ];
   });
 
+  const [tags, setTags] = useState(() => {
+    const saved = localStorage.getItem('tags');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, name: 'Urgente', color: 'bg-red-100 text-red-700' },
+      { id: 2, name: 'Importante', color: 'bg-orange-100 text-orange-700' },
+      { id: 3, name: 'Reunião', color: 'bg-blue-100 text-blue-700' }
+    ];
+  });
+
   const [newJobName, setNewJobName] = useState('');
+  const [newTagName, setNewTagName] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [filterByTags, setFilterByTags] = useState([]);
   
   const colors = [
     'bg-blue-100 text-blue-700',
@@ -75,7 +88,8 @@ export default function App() {
     jobId: jobs[0]?.id || 1,
     type: 'projeto',
     date: new Date().toISOString().split('T')[0],
-    time: ''
+    time: '',
+    tags: []
   });
 
   const [configForm, setConfigForm] = useState({
@@ -129,6 +143,10 @@ export default function App() {
   }, [jobs]);
 
   useEffect(() => {
+    localStorage.setItem('tags', JSON.stringify(tags));
+  }, [tags]);
+
+  useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
@@ -165,6 +183,7 @@ export default function App() {
     // Carregar dados da nuvem
     const tasksResult = await loadTasks(userId);
     const jobsResult = await loadJobs(userId);
+    const tagsResult = await loadTags(userId);
     
     if (tasksResult.success && tasksResult.data) {
       setTasks(tasksResult.data);
@@ -176,6 +195,12 @@ export default function App() {
       setJobs(jobsResult.data);
     } else if (!jobsResult.success) {
       addNotification(jobsResult.error, 'warning');
+    }
+
+    if (tagsResult.success && tagsResult.data) {
+      setTags(tagsResult.data);
+    } else if (!tagsResult.success) {
+      addNotification(tagsResult.error, 'warning');
     }
     
     setIsLoaded(true);
@@ -200,10 +225,21 @@ export default function App() {
         addNotification(error, 'error');
       }
     );
+
+    const unsubscribeTags = subscribeToTags(
+      userId,
+      (newTags) => {
+        setTags(newTags);
+      },
+      (error) => {
+        addNotification(error, 'error');
+      }
+    );
     
     return () => {
       unsubscribeTasks();
       unsubscribeJobs();
+      unsubscribeTags();
     };
   };
 
@@ -233,6 +269,18 @@ export default function App() {
       return () => clearTimeout(syncTimeout);
     }
   }, [jobs, isOnline, userId, isLoaded, networkStatus]);
+
+  useEffect(() => {
+    if (isOnline && userId && isLoaded && networkStatus) {
+      const syncTimeout = setTimeout(async () => {
+        const result = await saveTags(userId, tags);
+        if (!result.success) {
+          addNotification(result.error, 'warning');
+        }
+      }, 1000);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [tags, isOnline, userId, isLoaded, networkStatus]);
 
   const saveFirebaseConfig = async () => {
     setSyncError('');
@@ -264,6 +312,7 @@ export default function App() {
       // Enviar dados locais para a nuvem
       await saveTasks(result.user.uid, tasks);
       await saveJobs(result.user.uid, jobs);
+      await saveTags(result.user.uid, tags);
       
       setIsOnline(true);
       setShowSetup(false);
@@ -302,9 +351,11 @@ export default function App() {
         jobId: jobs[0]?.id || 1,
         type: 'projeto',
         date: new Date().toISOString().split('T')[0],
-        time: ''
+        time: '',
+        tags: []
       });
       setShowAddTask(false);
+      setSelectedTags([]);
       addNotification('Tarefa adicionada', 'success');
     }
   };
@@ -344,6 +395,50 @@ export default function App() {
     }
   };
 
+  const addTag = () => {
+    if (newTagName.trim()) {
+      const newTag = {
+        id: Date.now(),
+        name: newTagName,
+        color: colors[tags.length % colors.length]
+      };
+      setTags([...tags, newTag]);
+      setNewTagName('');
+      addNotification('Tag adicionada', 'success');
+    }
+  };
+
+  const deleteTag = (tagId) => {
+    setTags(tags.filter(tag => tag.id !== tagId));
+    setTasks(tasks.map(task => ({
+      ...task,
+      tags: task.tags?.filter(id => id !== tagId) || []
+    })));
+    setFilterByTags(filterByTags.filter(id => id !== tagId));
+    addNotification('Tag removida', 'info');
+  };
+
+  const toggleTagInTask = (tagId) => {
+    const currentTags = selectedTags;
+    if (currentTags.includes(tagId)) {
+      setSelectedTags(currentTags.filter(id => id !== tagId));
+    } else {
+      setSelectedTags([...currentTags, tagId]);
+    }
+  };
+
+  const toggleFilterTag = (tagId) => {
+    if (filterByTags.includes(tagId)) {
+      setFilterByTags(filterByTags.filter(id => id !== tagId));
+    } else {
+      setFilterByTags([...filterByTags, tagId]);
+    }
+  };
+
+  useEffect(() => {
+    setNewTask(prev => ({ ...prev, tags: selectedTags }));
+  }, [selectedTags]);
+
   const getJobColor = (jobId) => {
     return jobs.find(j => j.id === jobId)?.color || 'bg-gray-100 text-gray-700';
   };
@@ -352,20 +447,30 @@ export default function App() {
     return jobs.find(j => j.id === jobId)?.name || '';
   };
 
+  const getTagColor = (tagId) => {
+    return tags.find(t => t.id === tagId)?.color || 'bg-gray-100 text-gray-700';
+  };
+
+  const getTagName = (tagId) => {
+    return tags.find(t => t.id === tagId)?.name || '';
+  };
+
   const filterTasks = () => {
+    let filtered = [];
+    
     if (activeTab === 'daily' || activeTab === 'weekly') {
       const today = new Date().toISOString().split('T')[0];
       if (viewMode === 'daily') {
-        return tasks.filter(task => task.date === today);
+        filtered = tasks.filter(task => task.date === today);
       } else if (viewMode === 'weekly') {
         const weekFromNow = new Date();
         weekFromNow.setDate(weekFromNow.getDate() + 7);
-        return tasks.filter(task => {
+        filtered = tasks.filter(task => {
           const taskDate = new Date(task.date);
           return taskDate >= new Date() && taskDate <= weekFromNow;
         });
       } else if (viewMode === 'monthly') {
-        return tasks.filter(task => task.date.startsWith(selectedMonth));
+        filtered = tasks.filter(task => task.date.startsWith(selectedMonth));
       }
     } else {
       const jobId = parseInt(activeTab);
@@ -374,20 +479,30 @@ export default function App() {
       let filteredByJob = tasks.filter(task => task.jobId === jobId);
       
       if (viewMode === 'daily') {
-        return filteredByJob.filter(task => task.date === today);
+        filtered = filteredByJob.filter(task => task.date === today);
       } else if (viewMode === 'weekly') {
         const weekFromNow = new Date();
         weekFromNow.setDate(weekFromNow.getDate() + 7);
-        return filteredByJob.filter(task => {
+        filtered = filteredByJob.filter(task => {
           const taskDate = new Date(task.date);
           return taskDate >= new Date() && taskDate <= weekFromNow;
         });
       } else if (viewMode === 'monthly') {
-        return filteredByJob.filter(task => task.date.startsWith(selectedMonth));
+        filtered = filteredByJob.filter(task => task.date.startsWith(selectedMonth));
+      } else {
+        filtered = filteredByJob;
       }
-      
-      return filteredByJob;
     }
+    
+    // Filtrar por tags se houver filtros ativos
+    if (filterByTags.length > 0) {
+      filtered = filtered.filter(task => {
+        const taskTags = task.tags || [];
+        return filterByTags.some(tagId => taskTags.includes(tagId));
+      });
+    }
+    
+    return filtered;
   };
 
   const filteredTasks = filterTasks();
@@ -477,6 +592,17 @@ export default function App() {
               >
                 Gerenciar Trabalhos
               </button>
+              <button
+                onClick={() => setShowManageTags(true)}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                  darkMode 
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Tag size={16} className="inline mr-1" />
+                Tags
+              </button>
             </div>
           </div>
         </div>
@@ -555,6 +681,37 @@ export default function App() {
                 }`}
               />
             )}
+            
+            {tags.length > 0 && (
+              <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <p className={`text-xs mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Filtrar por tags:</p>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map(tag => (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleFilterTag(tag.id)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                        filterByTags.includes(tag.id)
+                          ? tag.color + ' ring-2 ring-blue-500'
+                          : darkMode
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                  {filterByTags.length > 0 && (
+                    <button
+                      onClick={() => setFilterByTags([])}
+                      className="px-3 py-1 rounded text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -604,6 +761,37 @@ export default function App() {
                 }`}
               />
             )}
+            
+            {tags.length > 0 && (
+              <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <p className={`text-xs mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Filtrar por tags:</p>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map(tag => (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleFilterTag(tag.id)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                        filterByTags.includes(tag.id)
+                          ? tag.color + ' ring-2 ring-blue-500'
+                          : darkMode
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                  {filterByTags.length > 0 && (
+                    <button
+                      onClick={() => setFilterByTags([])}
+                      className="px-3 py-1 rounded text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -623,7 +811,7 @@ export default function App() {
                   className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 />
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${getJobColor(task.jobId)}`}>
                       {getJobName(task.jobId)}
                     </span>
@@ -632,6 +820,16 @@ export default function App() {
                     }`}>
                       {task.type}
                     </span>
+                    {task.tags && task.tags.length > 0 && (
+                      <>
+                        {task.tags.map(tagId => (
+                          <span key={tagId} className={`px-2 py-1 rounded text-xs font-medium ${getTagColor(tagId)}`}>
+                            <Tag size={10} className="inline mr-1" />
+                            {getTagName(tagId)}
+                          </span>
+                        ))}
+                      </>
+                    )}
                   </div>
                   <p className={`mb-2 ${task.completed 
                     ? `line-through ${darkMode ? 'text-gray-500' : 'text-gray-400'}` 
@@ -747,6 +945,32 @@ export default function App() {
                   }`}
                 />
               </div>
+              
+              {tags.length > 0 && (
+                <div>
+                  <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Tags (opcional):</p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map(tag => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTagInTask(tag.id)}
+                        className={`px-3 py-2 rounded text-xs font-medium transition-all ${
+                          selectedTags.includes(tag.id)
+                            ? tag.color + ' ring-2 ring-blue-500'
+                            : darkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        <Tag size={12} className="inline mr-1" />
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="flex gap-3">
                 <button
                   onClick={addTask}
@@ -821,6 +1045,71 @@ export default function App() {
                   onClick={() => {
                     setShowManageJobs(false);
                     setNewJobName('');
+                  }}
+                  className={`px-6 py-3 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showManageTags && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Tags</h3>
+            
+            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+              {tags.map(tag => (
+                <div key={tag.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                }`}>
+                  <span className={`px-3 py-1 rounded text-sm font-medium ${tag.color}`}>
+                    <Tag size={14} className="inline mr-1" />
+                    {tag.name}
+                  </span>
+                  <button
+                    onClick={() => deleteTag(tag.id)}
+                    className={`transition-colors ${
+                      darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                    }`}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Nome da nova tag"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addTag()}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={addTag}
+                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  Adicionar Tag
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManageTags(false);
+                    setNewTagName('');
                   }}
                   className={`px-6 py-3 rounded-lg transition-colors ${
                     darkMode 
