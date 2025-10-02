@@ -42,402 +42,6 @@ const FinanceSummary = ({ transactions, darkMode }) => {
           </span>
           <TrendingUp size={20} className={darkMode ? 'text-green-300' : 'text-green-600'} />
         </div>
-
-      {showManageJobs && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Trabalhos</h3>
-            
-            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
-              {jobs.map(job => (
-                <div key={job.id} className={`flex items-center justify-between p-3 rounded-lg ${
-                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                }`}>
-                  <span className={`px-3 py-1 rounded text-sm font-medium ${job.color}`}>
-                    {job.name}
-                  </span>
-                  {jobs.length > 1 && (
-                    <button
-                      onClick={() => deleteJob(job.id)}
-                      className={`transition-colors ${
-                        darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
-                      }`}
-                    >
-                      <X size={18} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Nome do novo trabalho"
-                value={newJobName}
-                onChange={(e) => setNewJobName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addJob()}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={addJob}
-                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                >
-                  Adicionar Trabalho
-                </button>
-                <button
-                  onClick={() => {
-                    setShowManageJobs(false);
-                    setNewJobName('');
-                  }}
-                  className={`px-6 py-3 rounded-lg transition-colors ${
-                    darkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showManageTags && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Tags</h3>
-            
-            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
-              {tags.map(tag => (
-                <div key={tag.id} className={`flex items-center justify-between p-3 rounded-lg ${
-                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                }`}>
-                  <span className={`px-3 py-1 rounded text-sm font-medium ${tag.color}`}>
-                    <Tag size={14} className="inline mr-1" />
-                    {tag.name}
-                  </span>
-                  <button
-                    onClick={() => deleteTag(tag.id)}
-                    className={`transition-colors ${
-                      darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
-                    }`}
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Nome da nova tag"
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={addTag}
-                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                >
-                  Adicionar Tag
-                </button>
-                <button
-                  onClick={() => {
-                    setShowManageTags(false);
-                    setNewTagName('');
-                  }}
-                  className={`px-6 py-3 rounded-lg transition-colors ${
-                    darkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showManageFinanceCategories && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Categorias</h3>
-            
-            <div className="space-y-3 mb-6">
-              {financeCategories.map(cat => (
-                <div key={cat.id} className={`flex items-center justify-between p-3 rounded-lg ${
-                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded text-sm font-medium ${cat.color}`}>
-                      {cat.name}
-                    </span>
-                    <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {cat.type === 'receita' ? '💚' : cat.type === 'despesa' ? '❤️' : '💙'}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => deleteFinanceCategory(cat.id)}
-                    className={`transition-colors ${
-                      darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
-                    }`}
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Nome da nova categoria"
-                value={newFinanceCategoryName}
-                onChange={(e) => setNewFinanceCategoryName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addFinanceCategory()}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
-              <select
-                value={newFinanceCategoryType}
-                onChange={(e) => setNewFinanceCategoryType(e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                    : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              >
-                <option value="receita">Receita</option>
-                <option value="despesa">Despesa</option>
-                <option value="ambos">Ambos</option>
-              </select>
-              <div className="flex gap-3">
-                <button
-                  onClick={addFinanceCategory}
-                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                >
-                  Adicionar Categoria
-                </button>
-                <button
-                  onClick={() => {
-                    setShowManageFinanceCategories(false);
-                    setNewFinanceCategoryName('');
-                  }}
-                  className={`px-6 py-3 rounded-lg transition-colors ${
-                    darkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showSetup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className={`rounded-lg p-6 max-w-2xl w-full my-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Configurar Sincronização na Nuvem
-            </h3>
-            
-            {firebaseConfig ? (
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900 text-green-200' : 'bg-green-50 text-green-800'}`}>
-                  <p className="font-medium mb-1">✓ Conectado à nuvem</p>
-                  <p className="text-sm opacity-80">Email: {userEmail}</p>
-                  <p className="text-sm opacity-80">Projeto: {firebaseConfig.projectId}</p>
-                </div>
-                
-                <button
-                  onClick={disconnectFirebase}
-                  className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors font-medium"
-                >
-                  Desconectar
-                </button>
-                
-                <button
-                  onClick={() => setShowSetup(false)}
-                  className={`w-full py-3 rounded-lg transition-colors ${
-                    darkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Fechar
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg text-sm ${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-800'}`}>
-                  <p className="font-medium mb-2">📝 Como configurar:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Acesse <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="underline">console.firebase.google.com</a></li>
-                    <li>No Firebase Console, vá em "Configurações do projeto" → "Geral"</li>
-                    <li>Role até "Seus aplicativos" e clique no ícone Web</li>
-                    <li>Copie as configurações e cole abaixo</li>
-                    <li>Em "Authentication", ative "Email/Password"</li>
-                    <li>Em "Firestore Database", crie um banco de dados</li>
-                    <li>Em "Authentication" → "Users", adicione um usuário</li>
-                  </ol>
-                </div>
-
-                {syncError && (
-                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-50 text-red-800'}`}>
-                    <p className="text-sm">{syncError}</p>
-                  </div>
-                )}
-
-                <input
-                  type="text"
-                  placeholder="API Key"
-                  value={configForm.apiKey}
-                  onChange={(e) => setConfigForm({...configForm, apiKey: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Auth Domain (ex: meu-app.firebaseapp.com)"
-                  value={configForm.authDomain}
-                  onChange={(e) => setConfigForm({...configForm, authDomain: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Project ID"
-                  value={configForm.projectId}
-                  onChange={(e) => setConfigForm({...configForm, projectId: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Storage Bucket"
-                  value={configForm.storageBucket}
-                  onChange={(e) => setConfigForm({...configForm, storageBucket: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Messaging Sender ID"
-                  value={configForm.messagingSenderId}
-                  onChange={(e) => setConfigForm({...configForm, messagingSenderId: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="App ID"
-                  value={configForm.appId}
-                  onChange={(e) => setConfigForm({...configForm, appId: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-
-                <div className={`border-t pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Credenciais de acesso (usuário do Firebase):</p>
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={configForm.email}
-                    onChange={(e) => setConfigForm({...configForm, email: e.target.value})}
-                    className={`w-full px-4 py-2 text-sm border rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                    }`}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Senha"
-                    value={configForm.password}
-                    onChange={(e) => setConfigForm({...configForm, password: e.target.value})}
-                    className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                    }`}
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={saveFirebaseConfig}
-                    disabled={isSyncing}
-                    className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {isSyncing ? 'Conectando...' : 'Conectar'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowSetup(false);
-                      setSyncError('');
-                    }}
-                    className={`px-6 py-3 rounded-lg transition-colors ${
-                      darkMode 
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <style jsx>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-      `}</style>
-    </div>
-  );
-}
         <div className={`text-2xl font-bold ${
           darkMode ? 'text-green-100' : 'text-green-700'
         }`}>
@@ -661,11 +265,17 @@ const FinanceForm = ({
             </label>
             <select
               value={newTransaction.type}
-              onChange={(e) => setNewTransaction({ 
-                ...newTransaction, 
-                type: e.target.value,
-                categoryId: filteredCategories[0]?.id || null
-              })}
+              onChange={(e) => {
+                const newType = e.target.value;
+                const newFilteredCategories = categories.filter(cat => 
+                  cat.type === newType || cat.type === 'ambos'
+                );
+                setNewTransaction({ 
+                  ...newTransaction, 
+                  type: newType,
+                  categoryId: newFilteredCategories[0]?.id || null
+                });
+              }}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 darkMode 
                   ? 'bg-gray-700 border-gray-600 text-gray-200' 
@@ -955,6 +565,8 @@ export default function App() {
     password: ''
   });
 
+  const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
     const handleOnline = () => {
       setNetworkStatus(true);
@@ -1133,8 +745,6 @@ export default function App() {
       unsubscribeFinanceCategories();
     };
   };
-
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (isOnline && userId && isLoaded && networkStatus) {
@@ -1834,7 +1444,6 @@ export default function App() {
           <div>
             {(activeTab === 'daily' || parseInt(activeTab)) && (
               <div className="mb-6 space-y-3">
-              <div className="mb-6 space-y-3">
                 <div className="flex gap-2">
                   <div className={`flex-1 flex items-center gap-2 px-4 py-2 rounded-lg border ${
                     darkMode 
@@ -2014,19 +1623,19 @@ export default function App() {
                   >
                     Este Mês
                   </button>
+                  {viewMode === 'monthly' && (
+                    <input
+                      type="month"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      className={`px-4 py-2 rounded-lg text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        darkMode 
+                          ? 'bg-gray-800 border-gray-600 text-gray-200' 
+                          : 'bg-white border-gray-300 text-gray-800'
+                      }`}
+                    />
+                  )}
                 </div>
-                {viewMode === 'monthly' && (
-                  <input
-                    type="month"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className={`px-4 py-2 rounded-lg text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      darkMode 
-                        ? 'bg-gray-800 border-gray-600 text-gray-200' 
-                        : 'bg-white border-gray-300 text-gray-800'
-                    }`}
-                  />
-                )}
                 
                 {tags.length > 0 && (
                   <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
@@ -2279,3 +1888,400 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* Modais */}
+      {showManageJobs && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Trabalhos</h3>
+            
+            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+              {jobs.map(job => (
+                <div key={job.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                }`}>
+                  <span className={`px-3 py-1 rounded text-sm font-medium ${job.color}`}>
+                    {job.name}
+                  </span>
+                  {jobs.length > 1 && (
+                    <button
+                      onClick={() => deleteJob(job.id)}
+                      className={`transition-colors ${
+                        darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                      }`}
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Nome do novo trabalho"
+                value={newJobName}
+                onChange={(e) => setNewJobName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addJob()}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={addJob}
+                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  Adicionar Trabalho
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManageJobs(false);
+                    setNewJobName('');
+                  }}
+                  className={`px-6 py-3 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showManageTags && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Tags</h3>
+            
+            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+              {tags.map(tag => (
+                <div key={tag.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                }`}>
+                  <span className={`px-3 py-1 rounded text-sm font-medium ${tag.color}`}>
+                    <Tag size={14} className="inline mr-1" />
+                    {tag.name}
+                  </span>
+                  <button
+                    onClick={() => deleteTag(tag.id)}
+                    className={`transition-colors ${
+                      darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                    }`}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Nome da nova tag"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addTag()}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={addTag}
+                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  Adicionar Tag
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManageTags(false);
+                    setNewTagName('');
+                  }}
+                  className={`px-6 py-3 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showManageFinanceCategories && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Categorias</h3>
+            
+            <div className="space-y-3 mb-6">
+              {financeCategories.map(cat => (
+                <div key={cat.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded text-sm font-medium ${cat.color}`}>
+                      {cat.name}
+                    </span>
+                    <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {cat.type === 'receita' ? '💚' : cat.type === 'despesa' ? '❤️' : '💙'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => deleteFinanceCategory(cat.id)}
+                    className={`transition-colors ${
+                      darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                    }`}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Nome da nova categoria"
+                value={newFinanceCategoryName}
+                onChange={(e) => setNewFinanceCategoryName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addFinanceCategory()}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              />
+              <select
+                value={newFinanceCategoryType}
+                onChange={(e) => setNewFinanceCategoryType(e.target.value)}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              >
+                <option value="receita">Receita</option>
+                <option value="despesa">Despesa</option>
+                <option value="ambos">Ambos</option>
+              </select>
+              <div className="flex gap-3">
+                <button
+                  onClick={addFinanceCategory}
+                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  Adicionar Categoria
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManageFinanceCategories(false);
+                    setNewFinanceCategoryName('');
+                  }}
+                  className={`px-6 py-3 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSetup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className={`rounded-lg p-6 max-w-2xl w-full my-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+              Configurar Sincronização na Nuvem
+            </h3>
+            
+            {firebaseConfig ? (
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900 text-green-200' : 'bg-green-50 text-green-800'}`}>
+                  <p className="font-medium mb-1">✓ Conectado à nuvem</p>
+                  <p className="text-sm opacity-80">Email: {userEmail}</p>
+                  <p className="text-sm opacity-80">Projeto: {firebaseConfig.projectId}</p>
+                </div>
+                
+                <button
+                  onClick={disconnectFirebase}
+                  className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors font-medium"
+                >
+                  Desconectar
+                </button>
+                
+                <button
+                  onClick={() => setShowSetup(false)}
+                  className={`w-full py-3 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Fechar
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg text-sm ${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-800'}`}>
+                  <p className="font-medium mb-2">📝 Como configurar:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Acesse <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="underline">console.firebase.google.com</a></li>
+                    <li>No Firebase Console, vá em "Configurações do projeto" → "Geral"</li>
+                    <li>Role até "Seus aplicativos" e clique no ícone Web</li>
+                    <li>Copie as configurações e cole abaixo</li>
+                    <li>Em "Authentication", ative "Email/Password"</li>
+                    <li>Em "Firestore Database", crie um banco de dados</li>
+                    <li>Em "Authentication" → "Users", adicione um usuário</li>
+                  </ol>
+                </div>
+
+                {syncError && (
+                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-50 text-red-800'}`}>
+                    <p className="text-sm">{syncError}</p>
+                  </div>
+                )}
+
+                <input
+                  type="text"
+                  placeholder="API Key"
+                  value={configForm.apiKey}
+                  onChange={(e) => setConfigForm({...configForm, apiKey: e.target.value})}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                  }`}
+                />
+                
+                <input
+                  type="text"
+                  placeholder="Auth Domain (ex: meu-app.firebaseapp.com)"
+                  value={configForm.authDomain}
+                  onChange={(e) => setConfigForm({...configForm, authDomain: e.target.value})}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                  }`}
+                />
+                
+                <input
+                  type="text"
+                  placeholder="Project ID"
+                  value={configForm.projectId}
+                  onChange={(e) => setConfigForm({...configForm, projectId: e.target.value})}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                  }`}
+                />
+                
+                <input
+                  type="text"
+                  placeholder="Storage Bucket"
+                  value={configForm.storageBucket}
+                  onChange={(e) => setConfigForm({...configForm, storageBucket: e.target.value})}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                  }`}
+                />
+                
+                <input
+                  type="text"
+                  placeholder="Messaging Sender ID"
+                  value={configForm.messagingSenderId}
+                  onChange={(e) => setConfigForm({...configForm, messagingSenderId: e.target.value})}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                  }`}
+                />
+                
+                <input
+                  type="text"
+                  placeholder="App ID"
+                  value={configForm.appId}
+                  onChange={(e) => setConfigForm({...configForm, appId: e.target.value})}
+                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                  }`}
+                />
+
+                <div className={`border-t pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Credenciais de acesso (usuário do Firebase):</p>
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={configForm.email}
+                    onChange={(e) => setConfigForm({...configForm, email: e.target.value})}
+                    className={`w-full px-4 py-2 text-sm border rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                    }`}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Senha"
+                    value={configForm.password}
+                    onChange={(e) => setConfigForm({...configForm, password: e.target.value})}
+                    className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                    }`}
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={saveFirebaseConfig}
+                    disabled={isSyncing}
+                    className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50"
+                  >
+                    {isSyncing ? 'Conectando...' : 'Conectar'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSetup(false);
+                      setSyncError('');
+                    }}
+                    className={`px-6 py-3 rounded-lg transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+}
