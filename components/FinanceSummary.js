@@ -1,15 +1,7 @@
 import React from 'react';
-import { X, Calendar, Briefcase, CheckCircle, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
-export default function FinanceList({ 
-  transactions, 
-  onToggle, 
-  onDelete, 
-  getCategoryColor, 
-  getCategoryName,
-  getJobName,
-  darkMode 
-}) {
+export default function FinanceSummary({ transactions, darkMode }) {
   const formatCurrency = (cents) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -17,104 +9,98 @@ export default function FinanceList({
     }).format(cents / 100);
   };
 
-  return (
-    <div className="space-y-3">
-      {transactions.map(transaction => (
-        <div
-          key={transaction.id}
-          className={`rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow ${
-            darkMode ? 'bg-gray-800' : 'bg-white'
-          } ${!transaction.completed && 'opacity-70'}`}
-        >
-          <div className="flex items-start gap-4">
-            <button
-              onClick={() => onToggle(transaction.id)}
-              className={`mt-1 p-1 rounded transition-colors ${
-                transaction.completed
-                  ? transaction.type === 'receita'
-                    ? 'text-green-500 hover:text-green-600'
-                    : 'text-red-500 hover:text-red-600'
-                  : darkMode
-                  ? 'text-gray-600 hover:text-gray-500'
-                  : 'text-gray-400 hover:text-gray-500'
-              }`}
-            >
-              {transaction.completed ? <CheckCircle size={20} /> : <Clock size={20} />}
-            </button>
-            
-            <div className="flex-1">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className={`text-lg font-medium ${
-                      transaction.type === 'receita'
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }`}>
-                      {transaction.type === 'receita' ? '💚' : '❤️'}
-                    </span>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(transaction.categoryId)}`}>
-                      {getCategoryName(transaction.categoryId)}
-                    </span>
-                    {transaction.jobId && (
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        <Briefcase size={10} className="inline mr-1" />
-                        {getJobName(transaction.jobId)}
-                      </span>
-                    )}
-                    {!transaction.completed && (
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        darkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        Pendente
-                      </span>
-                    )}
-                  </div>
-                  <p className={`mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    {transaction.description || 'Sem descrição'}
-                  </p>
-                  <div className={`flex items-center gap-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <span className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      {new Date(transaction.date + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="text-right ml-4">
-                  <div className={`text-xl font-bold ${
-                    transaction.type === 'receita'
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }`}>
-                    {transaction.type === 'receita' ? '+' : '-'} {formatCurrency(transaction.amount)}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <button
-              onClick={() => onDelete(transaction.id)}
-              className={`transition-colors ${
-                darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
-              }`}
-            >
-              <X size={20} />
-            </button>
-          </div>
-        </div>
-      ))}
+  const calculateTotals = () => {
+    return transactions.reduce((acc, t) => {
+      if (t.completed) {
+        if (t.type === 'receita') {
+          acc.income += t.amount;
+        } else {
+          acc.expense += t.amount;
+        }
+      }
+      return acc;
+    }, { income: 0, expense: 0 });
+  };
 
-      {transactions.length === 0 && (
-        <div className={`rounded-lg p-12 text-center ${
-          darkMode ? 'bg-gray-800 text-gray-500' : 'bg-white text-gray-400'
-        }`}>
-          <div className="text-6xl mb-4">💰</div>
-          <p>Nenhuma transação para mostrar</p>
+  const { income, expense } = calculateTotals();
+  const balance = income - expense;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {/* Receitas */}
+      <div className={`rounded-lg p-6 ${
+        darkMode 
+          ? 'bg-gradient-to-br from-green-900 to-green-800' 
+          : 'bg-gradient-to-br from-green-50 to-green-100'
+      }`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className={`text-sm font-medium ${
+            darkMode ? 'text-green-200' : 'text-green-700'
+          }`}>
+            Receitas
+          </span>
+          <TrendingUp size={20} className={darkMode ? 'text-green-300' : 'text-green-600'} />
         </div>
-      )}
+        <div className={`text-2xl font-bold ${
+          darkMode ? 'text-green-100' : 'text-green-700'
+        }`}>
+          {formatCurrency(income)}
+        </div>
+      </div>
+
+      {/* Despesas */}
+      <div className={`rounded-lg p-6 ${
+        darkMode 
+          ? 'bg-gradient-to-br from-red-900 to-red-800' 
+          : 'bg-gradient-to-br from-red-50 to-red-100'
+      }`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className={`text-sm font-medium ${
+            darkMode ? 'text-red-200' : 'text-red-700'
+          }`}>
+            Despesas
+          </span>
+          <TrendingDown size={20} className={darkMode ? 'text-red-300' : 'text-red-600'} />
+        </div>
+        <div className={`text-2xl font-bold ${
+          darkMode ? 'text-red-100' : 'text-red-700'
+        }`}>
+          {formatCurrency(expense)}
+        </div>
+      </div>
+
+      {/* Saldo */}
+      <div className={`rounded-lg p-6 ${
+        balance >= 0
+          ? darkMode 
+            ? 'bg-gradient-to-br from-blue-900 to-blue-800' 
+            : 'bg-gradient-to-br from-blue-50 to-blue-100'
+          : darkMode
+            ? 'bg-gradient-to-br from-orange-900 to-orange-800'
+            : 'bg-gradient-to-br from-orange-50 to-orange-100'
+      }`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className={`text-sm font-medium ${
+            balance >= 0
+              ? darkMode ? 'text-blue-200' : 'text-blue-700'
+              : darkMode ? 'text-orange-200' : 'text-orange-700'
+          }`}>
+            Saldo
+          </span>
+          <DollarSign size={20} className={
+            balance >= 0
+              ? darkMode ? 'text-blue-300' : 'text-blue-600'
+              : darkMode ? 'text-orange-300' : 'text-orange-600'
+          } />
+        </div>
+        <div className={`text-2xl font-bold ${
+          balance >= 0
+            ? darkMode ? 'text-blue-100' : 'text-blue-700'
+            : darkMode ? 'text-orange-100' : 'text-orange-700'
+        }`}>
+          {formatCurrency(balance)}
+        </div>
+      </div>
     </div>
   );
 }
