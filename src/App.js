@@ -1831,8 +1831,9 @@ export default function App() {
         )}
 
         {activeTab !== 'finance' && (
-          <>
+          <div>
             {(activeTab === 'daily' || parseInt(activeTab)) && (
+              <div className="mb-6 space-y-3">
               <div className="mb-6 space-y-3">
                 <div className="flex gap-2">
                   <div className={`flex-1 flex items-center gap-2 px-4 py-2 rounded-lg border ${
