@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff } from 'lucide-react';
+import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs } from './firebase';
 
 export default function App() {
@@ -30,12 +30,27 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState('');
+  const [networkStatus, setNetworkStatus] = useState(navigator.onLine);
   
-const [jobs, setJobs] = useState([
-  { id: 1, name: 'Trabalho Fixo 1', color: 'bg-blue-100 text-blue-700' },
-  { id: 2, name: 'Trabalho Fixo 2', color: 'bg-green-100 text-green-700' },
-  { id: 3, name: 'Freelancers', color: 'bg-purple-100 text-purple-700' }
-]);
+  // Sistema de notificações/toast
+  const [notifications, setNotifications] = useState([]);
+  
+  const addNotification = (message, type = 'info') => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 4000);
+  };
+  
+  const [jobs, setJobs] = useState(() => {
+    const saved = localStorage.getItem('jobs');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, name: 'Trabalho Fixo 1', color: 'bg-blue-100 text-blue-700' },
+      { id: 2, name: 'Trabalho Fixo 2', color: 'bg-green-100 text-green-700' },
+      { id: 3, name: 'Freelancers', color: 'bg-purple-100 text-purple-700' }
+    ];
+  });
 
   const [newJobName, setNewJobName] = useState('');
   
@@ -50,25 +65,18 @@ const [jobs, setJobs] = useState([
     'bg-teal-100 text-teal-700'
   ];
   
-const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(() => {
+    const saved = localStorage.getItem('tasks');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const [newTask, setNewTask] = useState({
     title: '',
-    jobId: 1,
+    jobId: jobs[0]?.id || 1,
     type: 'projeto',
     date: new Date().toISOString().split('T')[0],
     time: ''
   });
-
-useEffect(() => {
-  if (jobs.length > 0 && !jobs.find(j => j.id === newTask.jobId)) {
-    setNewTask(prev => ({
-      ...prev,
-      jobId: jobs[0].id
-    }));
-  }
-}, [jobs]);
-  
 
   const [configForm, setConfigForm] = useState({
     apiKey: '',
@@ -80,6 +88,36 @@ useEffect(() => {
     email: '',
     password: ''
   });
+
+  // Monitorar status da rede
+  useEffect(() => {
+    const handleOnline = () => {
+      setNetworkStatus(true);
+      addNotification('Conexão restaurada', 'success');
+    };
+    
+    const handleOffline = () => {
+      setNetworkStatus(false);
+      addNotification('Sem conexão com a internet', 'warning');
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (jobs.length > 0 && !jobs.find(j => j.id === newTask.jobId)) {
+      setNewTask(prev => ({
+        ...prev,
+        jobId: jobs[0].id
+      }));
+    }
+  }, [jobs]);
 
   // Salvar dados localmente
   useEffect(() => {
@@ -114,59 +152,87 @@ useEffect(() => {
   }, [firebaseConfig, userId]);
 
   const initializeAndSync = async () => {
-    const initialized = initializeFirebase(firebaseConfig);
-    if (initialized) {
-      setIsOnline(true);
-      
-      // Carregar dados da nuvem
-      const cloudTasks = await loadTasks(userId);
-      const cloudJobs = await loadJobs(userId);
-      
-      if (cloudTasks) {
-        setTasks(cloudTasks);
-      }
-      if (cloudJobs) {
-        setJobs(cloudJobs);
-      }
-      
-      setIsLoaded(true); 
-      
-      // Subscrever para mudanças em tempo real
-      const unsubscribeTasks = subscribeToTasks(userId, (newTasks) => {
-        setTasks(newTasks);
-      });
-      
-      const unsubscribeJobs = subscribeToJobs(userId, (newJobs) => {
-        setJobs(newJobs);
-      });
-      
-      return () => {
-        unsubscribeTasks();
-        unsubscribeJobs();
-      };
+    const result = initializeFirebase(firebaseConfig);
+    
+    if (!result.success) {
+      addNotification(result.error, 'error');
+      return;
     }
+    
+    setIsOnline(true);
+    addNotification('Conectado à nuvem', 'success');
+    
+    // Carregar dados da nuvem
+    const tasksResult = await loadTasks(userId);
+    const jobsResult = await loadJobs(userId);
+    
+    if (tasksResult.success && tasksResult.data) {
+      setTasks(tasksResult.data);
+    } else if (!tasksResult.success) {
+      addNotification(tasksResult.error, 'warning');
+    }
+    
+    if (jobsResult.success && jobsResult.data) {
+      setJobs(jobsResult.data);
+    } else if (!jobsResult.success) {
+      addNotification(jobsResult.error, 'warning');
+    }
+    
+    setIsLoaded(true);
+    
+    // Subscrever para mudanças em tempo real
+    const unsubscribeTasks = subscribeToTasks(
+      userId,
+      (newTasks) => {
+        setTasks(newTasks);
+      },
+      (error) => {
+        addNotification(error, 'error');
+      }
+    );
+    
+    const unsubscribeJobs = subscribeToJobs(
+      userId,
+      (newJobs) => {
+        setJobs(newJobs);
+      },
+      (error) => {
+        addNotification(error, 'error');
+      }
+    );
+    
+    return () => {
+      unsubscribeTasks();
+      unsubscribeJobs();
+    };
   };
 
-// Sincronizar mudanças com Firebase
+  // Sincronizar mudanças com Firebase
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (isOnline && userId && isLoaded) {
-      const syncTimeout = setTimeout(() => {
-        saveTasks(userId, tasks);
+    if (isOnline && userId && isLoaded && networkStatus) {
+      const syncTimeout = setTimeout(async () => {
+        const result = await saveTasks(userId, tasks);
+        if (!result.success) {
+          addNotification(result.error, 'warning');
+        }
       }, 1000);
       return () => clearTimeout(syncTimeout);
     }
-  }, [tasks, isOnline, userId, isLoaded]);
+  }, [tasks, isOnline, userId, isLoaded, networkStatus]);
 
   useEffect(() => {
-    if (isOnline && userId && isLoaded) {
-      const syncTimeout = setTimeout(() => {
-        saveJobs(userId, jobs);
+    if (isOnline && userId && isLoaded && networkStatus) {
+      const syncTimeout = setTimeout(async () => {
+        const result = await saveJobs(userId, jobs);
+        if (!result.success) {
+          addNotification(result.error, 'warning');
+        }
       }, 1000);
       return () => clearTimeout(syncTimeout);
     }
-  }, [jobs, isOnline, userId, isLoaded]);
+  }, [jobs, isOnline, userId, isLoaded, networkStatus]);
 
   const saveFirebaseConfig = async () => {
     setSyncError('');
@@ -181,9 +247,9 @@ useEffect(() => {
       appId: configForm.appId
     };
     
-    const initialized = initializeFirebase(config);
-    if (!initialized) {
-      setSyncError('Erro ao conectar com Firebase. Verifique as configurações.');
+    const initResult = initializeFirebase(config);
+    if (!initResult.success) {
+      setSyncError(initResult.error);
       setIsSyncing(false);
       return;
     }
@@ -202,8 +268,9 @@ useEffect(() => {
       setIsOnline(true);
       setShowSetup(false);
       setSyncError('');
+      addNotification('Conectado com sucesso!', 'success');
     } else {
-      setSyncError('Erro no login: ' + result.error);
+      setSyncError(result.error);
     }
     
     setIsSyncing(false);
@@ -217,28 +284,30 @@ useEffect(() => {
     setUserEmail('');
     setUserId('');
     setIsOnline(false);
+    addNotification('Desconectado da nuvem', 'info');
   };
 
-const addTask = () => {
-  if (newTask.title.trim()) {
-    const validJobId = jobs.find(j => j.id === newTask.jobId) ? newTask.jobId : jobs[0]?.id;
-    
-    setTasks([...tasks, { 
-      id: Date.now(), 
-      ...newTask,
-      jobId: validJobId,
-      completed: false 
-    }]);
-    setNewTask({
-      title: '',
-      jobId: jobs[0]?.id || 1,
-      type: 'projeto',
-      date: new Date().toISOString().split('T')[0],
-      time: ''
-    });
-    setShowAddTask(false);
-  }
-};
+  const addTask = () => {
+    if (newTask.title.trim()) {
+      const validJobId = jobs.find(j => j.id === newTask.jobId) ? newTask.jobId : jobs[0]?.id;
+      
+      setTasks([...tasks, { 
+        id: Date.now(), 
+        ...newTask,
+        jobId: validJobId,
+        completed: false 
+      }]);
+      setNewTask({
+        title: '',
+        jobId: jobs[0]?.id || 1,
+        type: 'projeto',
+        date: new Date().toISOString().split('T')[0],
+        time: ''
+      });
+      setShowAddTask(false);
+      addNotification('Tarefa adicionada', 'success');
+    }
+  };
 
   const toggleTask = (id) => {
     setTasks(tasks.map(task => 
@@ -248,6 +317,7 @@ const addTask = () => {
 
   const deleteTask = (id) => {
     setTasks(tasks.filter(task => task.id !== id));
+    addNotification('Tarefa removida', 'info');
   };
 
   const addJob = () => {
@@ -259,6 +329,7 @@ const addTask = () => {
       };
       setJobs([...jobs, newJob]);
       setNewJobName('');
+      addNotification('Trabalho adicionado', 'success');
     }
   };
 
@@ -269,6 +340,7 @@ const addTask = () => {
       if (activeTab === jobId.toString()) {
         setActiveTab('daily');
       }
+      addNotification('Trabalho removido', 'info');
     }
   };
 
@@ -326,8 +398,30 @@ const addTask = () => {
 
   return (
     <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Sistema de Notificações */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {notifications.map(notif => (
+          <div
+            key={notif.id}
+            className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in ${
+              notif.type === 'success' 
+                ? 'bg-green-500 text-white' 
+                : notif.type === 'error' 
+                ? 'bg-red-500 text-white'
+                : notif.type === 'warning'
+                ? 'bg-yellow-500 text-white'
+                : 'bg-blue-500 text-white'
+            }`}
+          >
+            {notif.type === 'success' && <CheckCircle size={18} />}
+            {notif.type === 'error' && <AlertCircle size={18} />}
+            {notif.type === 'warning' && <AlertCircle size={18} />}
+            <span className="text-sm font-medium">{notif.message}</span>
+          </div>
+        ))}
+      </div>
+
       <div className="max-w-4xl mx-auto">
-        
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
@@ -335,6 +429,18 @@ const addTask = () => {
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Organização simples e clara</p>
             </div>
             <div className="flex gap-2">
+              {/* Indicador de status de rede */}
+              <div
+                className={`p-2 rounded-lg ${
+                  networkStatus
+                    ? darkMode ? 'bg-gray-800 text-green-400' : 'bg-green-50 text-green-600'
+                    : darkMode ? 'bg-gray-800 text-red-400' : 'bg-red-50 text-red-600'
+                }`}
+                title={networkStatus ? 'Conectado à internet' : 'Sem conexão'}
+              >
+                {networkStatus ? <Wifi size={20} /> : <WifiOff size={20} />}
+              </div>
+              
               <button
                 onClick={() => setShowSetup(true)}
                 className={`p-2 rounded-lg transition-colors ${
@@ -883,7 +989,7 @@ const addTask = () => {
                       darkMode 
                         ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                  }`}
                   >
                     Cancelar
                   </button>
@@ -893,6 +999,22 @@ const addTask = () => {
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
