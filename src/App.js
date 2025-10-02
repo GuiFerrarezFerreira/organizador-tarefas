@@ -1,6 +1,92 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag, Search, Filter, SlidersHorizontal } from 'lucide-react';
-import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags } from './firebase';
+</div>
+      )}
+
+      {showManageFinanceCategories && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Categorias</h3>
+            
+            <div className="space-y-3 mb-6">
+              {financeCategories.map(cat => (
+                <div key={cat.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                  darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded text-sm font-medium ${cat.color}`}>
+                      {cat.name}
+                    </span>
+                    <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {cat.type === 'receita' ? '💚' : cat.type === 'despesa' ? '❤️' : '💙'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => deleteFinanceCategory(cat.id)}
+                    className={`transition-colors ${
+                      darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                    }`}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Nome da nova categoria"
+                value={newFinanceCategoryName}
+                onChange={(e) => setNewFinanceCategoryName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addFinanceCategory()}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              />
+              <select
+                value={newFinanceCategoryType}
+                onChange={(e) => setNewFinanceCategoryType(e.target.value)}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              >
+                <option value="receita">Receita</option>
+                <option value="despesa">Despesa</option>
+                <option value="ambos">Ambos</option>
+              </select>
+              <div className="flex gap-3">
+                <button
+                  onClick={addFinanceCategory}
+                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  Adicionar Categoria
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManageFinanceCategories(false);
+                    setNewFinanceCategoryName('');
+                  }}
+                  className={`px-6 py-3 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}import React, { useState, useEffect } from 'react';
+import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag, Search, Filter, SlidersHorizontal, DollarSign } from 'lucide-react';
+import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags, saveTransactions, loadTransactions, subscribeToTransactions, saveFinanceCategories, loadFinanceCategories, subscribeToFinanceCategories } from './firebase';
+import FinanceForm from './components/FinanceForm';
+import FinanceList from './components/FinanceList';
+import FinanceSummary from './components/FinanceSummary';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('daily');
@@ -10,6 +96,8 @@ export default function App() {
   const [showManageJobs, setShowManageJobs] = useState(false);
   const [showManageTags, setShowManageTags] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [showManageFinanceCategories, setShowManageFinanceCategories] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -63,8 +151,30 @@ export default function App() {
     ];
   });
 
+  // Estados de Finanças
+  const [transactions, setTransactions] = useState(() => {
+    const saved = localStorage.getItem('transactions');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [financeCategories, setFinanceCategories] = useState(() => {
+    const saved = localStorage.getItem('financeCategories');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, name: 'Salário', type: 'receita', color: 'bg-green-100 text-green-700' },
+      { id: 2, name: 'Freelance', type: 'receita', color: 'bg-blue-100 text-blue-700' },
+      { id: 3, name: 'Investimentos', type: 'receita', color: 'bg-purple-100 text-purple-700' },
+      { id: 4, name: 'Alimentação', type: 'despesa', color: 'bg-red-100 text-red-700' },
+      { id: 5, name: 'Transporte', type: 'despesa', color: 'bg-orange-100 text-orange-700' },
+      { id: 6, name: 'Moradia', type: 'despesa', color: 'bg-pink-100 text-pink-700' },
+      { id: 7, name: 'Lazer', type: 'despesa', color: 'bg-yellow-100 text-yellow-700' },
+      { id: 8, name: 'Outros', type: 'ambos', color: 'bg-gray-100 text-gray-700' }
+    ];
+  });
+
   const [newJobName, setNewJobName] = useState('');
   const [newTagName, setNewTagName] = useState('');
+  const [newFinanceCategoryName, setNewFinanceCategoryName] = useState('');
+  const [newFinanceCategoryType, setNewFinanceCategoryType] = useState('despesa');
   const [selectedTags, setSelectedTags] = useState([]);
   const [filterByTags, setFilterByTags] = useState([]);
   
@@ -102,6 +212,16 @@ export default function App() {
     date: new Date().toISOString().split('T')[0],
     time: '',
     tags: []
+  });
+
+  const [newTransaction, setNewTransaction] = useState({
+    type: 'receita',
+    categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
+    amount: 0,
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    jobId: null,
+    completed: true
   });
 
   const [configForm, setConfigForm] = useState({
@@ -159,6 +279,14 @@ export default function App() {
   }, [tags]);
 
   useEffect(() => {
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  useEffect(() => {
+    localStorage.setItem('financeCategories', JSON.stringify(financeCategories));
+  }, [financeCategories]);
+
+  useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
@@ -187,16 +315,22 @@ export default function App() {
         e.preventDefault();
         setShowAdvancedFilters(!showAdvancedFilters);
       }
-      // Ctrl/Cmd + N para nova tarefa
+      // Ctrl/Cmd + N para nova tarefa ou transação
       if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault();
-        setShowAddTask(true);
+        if (activeTab === 'finance') {
+          setShowAddTransaction(true);
+        } else {
+          setShowAddTask(true);
+        }
       }
       // ESC para fechar modais
       if (e.key === 'Escape') {
         setShowAddTask(false);
+        setShowAddTransaction(false);
         setShowManageJobs(false);
         setShowManageTags(false);
+        setShowManageFinanceCategories(false);
         setShowAdvancedFilters(false);
         setShowSetup(false);
       }
@@ -204,7 +338,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [showAdvancedFilters]);
+  }, [showAdvancedFilters, activeTab]);
 
   // Inicializar Firebase e carregar dados
   useEffect(() => {
@@ -246,6 +380,21 @@ export default function App() {
     } else if (!tagsResult.success) {
       addNotification(tagsResult.error, 'warning');
     }
+
+    const transactionsResult = await loadTransactions(userId);
+    const financeCategoriesResult = await loadFinanceCategories(userId);
+
+    if (transactionsResult.success && transactionsResult.data) {
+      setTransactions(transactionsResult.data);
+    } else if (!transactionsResult.success) {
+      addNotification(transactionsResult.error, 'warning');
+    }
+
+    if (financeCategoriesResult.success && financeCategoriesResult.data) {
+      setFinanceCategories(financeCategoriesResult.data);
+    } else if (!financeCategoriesResult.success) {
+      addNotification(financeCategoriesResult.error, 'warning');
+    }
     
     setIsLoaded(true);
     
@@ -279,11 +428,33 @@ export default function App() {
         addNotification(error, 'error');
       }
     );
+
+    const unsubscribeTransactions = subscribeToTransactions(
+      userId,
+      (newTransactions) => {
+        setTransactions(newTransactions);
+      },
+      (error) => {
+        addNotification(error, 'error');
+      }
+    );
+
+    const unsubscribeFinanceCategories = subscribeToFinanceCategories(
+      userId,
+      (newCategories) => {
+        setFinanceCategories(newCategories);
+      },
+      (error) => {
+        addNotification(error, 'error');
+      }
+    );
     
     return () => {
       unsubscribeTasks();
       unsubscribeJobs();
       unsubscribeTags();
+      unsubscribeTransactions();
+      unsubscribeFinanceCategories();
     };
   };
 
@@ -326,6 +497,30 @@ export default function App() {
     }
   }, [tags, isOnline, userId, isLoaded, networkStatus]);
 
+  useEffect(() => {
+    if (isOnline && userId && isLoaded && networkStatus) {
+      const syncTimeout = setTimeout(async () => {
+        const result = await saveTransactions(userId, transactions);
+        if (!result.success) {
+          addNotification(result.error, 'warning');
+        }
+      }, 1000);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [transactions, isOnline, userId, isLoaded, networkStatus]);
+
+  useEffect(() => {
+    if (isOnline && userId && isLoaded && networkStatus) {
+      const syncTimeout = setTimeout(async () => {
+        const result = await saveFinanceCategories(userId, financeCategories);
+        if (!result.success) {
+          addNotification(result.error, 'warning');
+        }
+      }, 1000);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [financeCategories, isOnline, userId, isLoaded, networkStatus]);
+
   const saveFirebaseConfig = async () => {
     setSyncError('');
     setIsSyncing(true);
@@ -357,6 +552,8 @@ export default function App() {
       await saveTasks(result.user.uid, tasks);
       await saveJobs(result.user.uid, jobs);
       await saveTags(result.user.uid, tags);
+      await saveTransactions(result.user.uid, transactions);
+      await saveFinanceCategories(result.user.uid, financeCategories);
       
       setIsOnline(true);
       setShowSetup(false);
@@ -482,6 +679,91 @@ export default function App() {
   useEffect(() => {
     setNewTask(prev => ({ ...prev, tags: selectedTags }));
   }, [selectedTags]);
+
+  // Funções de Finanças
+  const addTransaction = () => {
+    if (newTransaction.amount > 0) {
+      setTransactions([...transactions, { 
+        id: Date.now(), 
+        ...newTransaction
+      }]);
+      setNewTransaction({
+        type: 'receita',
+        categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
+        amount: 0,
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        jobId: null,
+        completed: true
+      });
+      setShowAddTransaction(false);
+      addNotification('Transação adicionada', 'success');
+    }
+  };
+
+  const toggleTransaction = (id) => {
+    setTransactions(transactions.map(t => 
+      t.id === id ? { ...t, completed: !t.completed } : t
+    ));
+  };
+
+  const deleteTransaction = (id) => {
+    setTransactions(transactions.filter(t => t.id !== id));
+    addNotification('Transação removida', 'info');
+  };
+
+  const addFinanceCategory = () => {
+    if (newFinanceCategoryName.trim()) {
+      const newCategory = {
+        id: Date.now(),
+        name: newFinanceCategoryName,
+        type: newFinanceCategoryType,
+        color: colors[financeCategories.length % colors.length]
+      };
+      setFinanceCategories([...financeCategories, newCategory]);
+      setNewFinanceCategoryName('');
+      addNotification('Categoria adicionada', 'success');
+    }
+  };
+
+  const deleteFinanceCategory = (categoryId) => {
+    setFinanceCategories(financeCategories.filter(c => c.id !== categoryId));
+    setTransactions(transactions.filter(t => t.categoryId !== categoryId));
+    addNotification('Categoria removida', 'info');
+  };
+
+  const getCategoryColor = (categoryId) => {
+    return financeCategories.find(c => c.id === categoryId)?.color || 'bg-gray-100 text-gray-700';
+  };
+
+  const getCategoryName = (categoryId) => {
+    return financeCategories.find(c => c.id === categoryId)?.name || '';
+  };
+
+  const filterTransactions = () => {
+    let filtered = transactions;
+    
+    // Filtrar por período de viewMode
+    if (viewMode === 'daily') {
+      const today = new Date().toISOString().split('T')[0];
+      filtered = filtered.filter(t => t.date === today);
+    } else if (viewMode === 'weekly') {
+      const weekFromNow = new Date();
+      weekFromNow.setDate(weekFromNow.getDate() + 7);
+      filtered = filtered.filter(t => {
+        const tDate = new Date(t.date);
+        return tDate >= new Date() && tDate <= weekFromNow;
+      });
+    } else if (viewMode === 'monthly') {
+      filtered = filtered.filter(t => t.date.startsWith(selectedMonth));
+    }
+    
+    return filtered;
+  };
+
+  const sortedTransactions = [...filterTransactions()].sort((a, b) => {
+    return new Date(b.date) - new Date(a.date);
+  });
 
   const getJobColor = (jobId) => {
     return jobs.find(j => j.id === jobId)?.color || 'bg-gray-100 text-gray-700';
@@ -735,6 +1017,17 @@ export default function App() {
                 {job.name}
               </button>
             ))}
+            <button
+              onClick={() => setActiveTab('finance')}
+              className={`px-6 py-4 text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${
+                activeTab === 'finance'
+                  ? `border-b-2 border-blue-500 font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`
+                  : `${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`
+              }`}
+            >
+              <DollarSign size={16} />
+              Finanças
+            </button>
           </div>
         </div>
 
@@ -1194,7 +1487,112 @@ export default function App() {
           </div>
         )}
 
-        <div className="space-y-3">
+        {/* Conteúdo da aba de Finanças */}
+        {activeTab === 'finance' && (
+          <div>
+            {/* Resumo Financeiro */}
+            <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
+
+            {/* Filtros de período */}
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('daily')}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    viewMode === 'daily'
+                      ? 'bg-blue-500 text-white'
+                      : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
+                  }`}
+                >
+                  Hoje
+                </button>
+                <button
+                  onClick={() => setViewMode('weekly')}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    viewMode === 'weekly'
+                      ? 'bg-blue-500 text-white'
+                      : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
+                  }`}
+                >
+                  Esta Semana
+                </button>
+                <button
+                  onClick={() => setViewMode('monthly')}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    viewMode === 'monthly'
+                      ? 'bg-blue-500 text-white'
+                      : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
+                  }`}
+                >
+                  Este Mês
+                </button>
+                {viewMode === 'monthly' && (
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className={`px-4 py-2 rounded-lg text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      darkMode 
+                        ? 'bg-gray-800 border-gray-600 text-gray-200' 
+                        : 'bg-white border-gray-300 text-gray-800'
+                    }`}
+                  />
+                )}
+              </div>
+
+              <button
+                onClick={() => setShowManageFinanceCategories(true)}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                  darkMode 
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Gerenciar Categorias
+              </button>
+            </div>
+
+            {/* Lista de Transações */}
+            <FinanceList
+              transactions={sortedTransactions}
+              onToggle={toggleTransaction}
+              onDelete={deleteTransaction}
+              getCategoryColor={getCategoryColor}
+              getCategoryName={getCategoryName}
+              getJobName={getJobName}
+              darkMode={darkMode}
+            />
+
+            {/* Botão adicionar transação */}
+            {!showAddTransaction ? (
+              <button
+                onClick={() => setShowAddTransaction(true)}
+                className={`mt-6 w-full border-2 border-dashed rounded-lg p-4 transition-colors flex items-center justify-center gap-2 ${
+                  darkMode 
+                    ? 'border-gray-700 text-gray-500 hover:border-blue-500 hover:text-blue-400 bg-gray-800' 
+                    : 'border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-500 bg-white'
+                }`}
+              >
+                <Plus size={20} />
+                <span>Adicionar transação</span>
+              </button>
+            ) : (
+              <FinanceForm
+                newTransaction={newTransaction}
+                setNewTransaction={setNewTransaction}
+                categories={financeCategories}
+                jobs={jobs}
+                onSubmit={addTransaction}
+                onCancel={() => setShowAddTransaction(false)}
+                darkMode={darkMode}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Conteúdo das abas de tarefas */}
+        {activeTab !== 'finance' && (
+          <div className="space-y-3">
           {hasActiveFilters() && (
             <div className={`px-4 py-2 rounded-lg text-sm ${
               darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'
@@ -1399,7 +1797,7 @@ export default function App() {
             </div>
           </div>
         )}
-      </div>
+        )}
 
       {showManageJobs && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
