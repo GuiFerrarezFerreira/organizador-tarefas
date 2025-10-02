@@ -200,5 +200,66 @@ export const subscribeToJobs = (userId, callback, errorCallback) => {
   );
 };
 
+export const saveTags = async (userId, tags) => {
+  try {
+    await setDoc(doc(db, 'users', userId, 'data', 'tags'), { 
+      tags,
+      lastUpdated: new Date().toISOString()
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao salvar tags:', error);
+    
+    let errorMessage = 'Erro ao salvar tags';
+    
+    if (error.code === 'permission-denied') {
+      errorMessage = 'Sem permissão para salvar';
+    } else if (error.code === 'unavailable') {
+      errorMessage = 'Servidor indisponível. Dados salvos localmente';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const loadTags = async (userId) => {
+  try {
+    const docSnap = await getDoc(doc(db, 'users', userId, 'data', 'tags'));
+    if (docSnap.exists()) {
+      return { success: true, data: docSnap.data().tags };
+    }
+    return { success: true, data: null };
+  } catch (error) {
+    console.error('Erro ao carregar tags:', error);
+    
+    let errorMessage = 'Erro ao carregar tags';
+    
+    if (error.code === 'permission-denied') {
+      errorMessage = 'Sem permissão para acessar dados';
+    } else if (error.code === 'unavailable') {
+      errorMessage = 'Servidor indisponível';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const subscribeToTags = (userId, callback, errorCallback) => {
+  return onSnapshot(
+    doc(db, 'users', userId, 'data', 'tags'),
+    (doc) => {
+      if (doc.exists()) {
+        callback(doc.data().tags);
+      }
+    },
+    (error) => {
+      console.error('Erro na subscrição de tags:', error);
+      if (errorCallback) {
+        errorCallback('Erro ao sincronizar tags em tempo real');
+      }
+    }
+  );
+};
+
 export const getAuth2 = () => auth;
 export const getDb = () => db;
