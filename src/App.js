@@ -506,6 +506,27 @@ export default function App() {
   const [newTagName, setNewTagName] = useState('');
   const [newFinanceCategoryName, setNewFinanceCategoryName] = useState('');
   const [newFinanceCategoryType, setNewFinanceCategoryType] = useState('despesa');
+  const [showManagePeople, setShowManagePeople] = useState(false);
+const [showManageCreditCards, setShowManageCreditCards] = useState(false);
+const [newPersonName, setNewPersonName] = useState('');
+const [newCardData, setNewCardData] = useState({ 
+  name: '', 
+  owner: 1, 
+  closingDay: 1, 
+  dueDay: 10 
+});
+
+const [people, setPeople] = useState(() => {
+  const saved = localStorage.getItem('people');
+  return saved ? JSON.parse(saved) : [
+    { id: 1, name: 'Eu', color: 'bg-blue-100 text-blue-700' }
+  ];
+});
+
+const [creditCards, setCreditCards] = useState(() => {
+  const saved = localStorage.getItem('creditCards');
+  return saved ? JSON.parse(saved) : [];
+});
   const [selectedTags, setSelectedTags] = useState([]);
   const [filterByTags, setFilterByTags] = useState([]);
   
@@ -545,13 +566,20 @@ export default function App() {
   });
 
   const [newTransaction, setNewTransaction] = useState({
-    type: 'receita',
-    categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
-    amount: 0,
-    description: '',
-    date: new Date().toISOString().split('T')[0],
-    jobId: null,
-    completed: true
+  type: 'receita',
+  categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
+  amount: 0,
+  description: '',
+  date: new Date().toISOString().split('T')[0],
+  jobId: null,
+  completed: true,
+  // NOVOS CAMPOS:
+  paymentMethod: 'checking', // 'checking' ou 'credit'
+  creditCardId: null,
+  ownerId: people[0]?.id || 1,
+  recurrence: 'once', // 'once', 'fixed', 'installment'
+  installments: 1,
+  currentInstallment: 1
   });
 
   const [configForm, setConfigForm] = useState({
@@ -632,6 +660,13 @@ export default function App() {
     }
   }, [userId]);
 
+  useEffect(() => {
+    localStorage.setItem('people', JSON.stringify(people));
+    }, [people]);
+
+useEffect(() => {
+  localStorage.setItem('creditCards', JSON.stringify(creditCards));
+}, [creditCards]);
   useEffect(() => {
     if (firebaseConfig && userId) {
       initializeAndSync();
@@ -1039,6 +1074,61 @@ export default function App() {
     return financeCategories.find(c => c.id === categoryId)?.name || '';
   };
 
+
+const addPerson = () => {
+  if (newPersonName.trim()) {
+    const newPerson = {
+      id: Date.now(),
+      name: newPersonName,
+      color: colors[people.length % colors.length]
+    };
+    setPeople([...people, newPerson]);
+    setNewPersonName('');
+    addNotification('Pessoa adicionada', 'success');
+  }
+};
+
+const deletePerson = (personId) => {
+  if (people.length > 1) {
+    setPeople(people.filter(p => p.id !== personId));
+    setTransactions(transactions.map(t => 
+      t.ownerId === personId ? { ...t, ownerId: people[0].id } : t
+    ));
+    addNotification('Pessoa removida', 'info');
+  }
+};
+
+const addCreditCard = () => {
+  if (newCardData.name.trim()) {
+    const newCard = {
+      id: Date.now(),
+      ...newCardData,
+      color: colors[creditCards.length % colors.length]
+    };
+    setCreditCards([...creditCards, newCard]);
+    setNewCardData({ name: '', owner: people[0]?.id || 1, closingDay: 1, dueDay: 10 });
+    addNotification('Cartão adicionado', 'success');
+  }
+};
+
+const deleteCreditCard = (cardId) => {
+  setCreditCards(creditCards.filter(c => c.id !== cardId));
+  setTransactions(transactions.filter(t => t.creditCardId !== cardId));
+  addNotification('Cartão removido', 'info');
+};
+
+const getPersonName = (personId) => {
+  return people.find(p => p.id === personId)?.name || '';
+};
+
+const getPersonColor = (personId) => {
+  return people.find(p => p.id === personId)?.color || 'bg-gray-100 text-gray-700';
+};
+
+const getCreditCardName = (cardId) => {
+  return creditCards.find(c => c.id === cardId)?.name || '';
+};
+
   const filterTasks = () => {
     let filtered = [];
     
@@ -1299,6 +1389,26 @@ export default function App() {
                 <Tag size={16} className="inline mr-1" />
                 Tags
               </button>
+<button
+  onClick={() => setShowManagePeople(true)}
+  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+    darkMode 
+      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+      : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+  }`}
+>
+  Pessoas
+</button>
+<button
+  onClick={() => setShowManageCreditCards(true)}
+  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+    darkMode 
+      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+      : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+  }`}
+>
+  Cartões
+</button>              
             </div>
           </div>
         </div>
@@ -2266,6 +2376,187 @@ export default function App() {
           </div>
         </div>
       )}
+
+
+// ADICIONAR antes de <style jsx> (linha ~1731):
+{showManagePeople && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Pessoas</h3>
+      
+      <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+        {people.map(person => (
+          <div key={person.id} className={`flex items-center justify-between p-3 rounded-lg ${
+            darkMode ? 'bg-gray-700' : 'bg-gray-50'
+          }`}>
+            <span className={`px-3 py-1 rounded text-sm font-medium ${person.color}`}>
+              {person.name}
+            </span>
+            {people.length > 1 && (
+              <button
+                onClick={() => deletePerson(person.id)}
+                className={`transition-colors ${
+                  darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                }`}
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <input
+          type="text"
+          placeholder="Nome da pessoa"
+          value={newPersonName}
+          onChange={(e) => setNewPersonName(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && addPerson()}
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            darkMode 
+              ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+              : 'bg-white border-gray-300 text-gray-800'
+          }`}
+        />
+        <div className="flex gap-3">
+          <button
+            onClick={addPerson}
+            className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+          >
+            Adicionar Pessoa
+          </button>
+          <button
+            onClick={() => {
+              setShowManagePeople(false);
+              setNewPersonName('');
+            }}
+            className={`px-6 py-3 rounded-lg transition-colors ${
+              darkMode 
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{showManageCreditCards && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Gerenciar Cartões de Crédito</h3>
+      
+      <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+        {creditCards.map(card => (
+          <div key={card.id} className={`flex items-center justify-between p-3 rounded-lg ${
+            darkMode ? 'bg-gray-700' : 'bg-gray-50'
+          }`}>
+            <div>
+              <span className={`px-3 py-1 rounded text-sm font-medium ${card.color}`}>
+                {card.name}
+              </span>
+              <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Dono: {getPersonName(card.owner)} | Fechamento: dia {card.closingDay} | Vencimento: dia {card.dueDay}
+              </p>
+            </div>
+            <button
+              onClick={() => deleteCreditCard(card.id)}
+              className={`transition-colors ${
+                darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+              }`}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <input
+          type="text"
+          placeholder="Nome do cartão"
+          value={newCardData.name}
+          onChange={(e) => setNewCardData({...newCardData, name: e.target.value})}
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            darkMode 
+              ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+              : 'bg-white border-gray-300 text-gray-800'
+          }`}
+        />
+        <select
+          value={newCardData.owner}
+          onChange={(e) => setNewCardData({...newCardData, owner: parseInt(e.target.value)})}
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            darkMode 
+              ? 'bg-gray-700 border-gray-600 text-gray-200' 
+              : 'bg-white border-gray-300 text-gray-800'
+          }`}
+        >
+          {people.map(person => (
+            <option key={person.id} value={person.id}>{person.name}</option>
+          ))}
+        </select>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dia Fechamento</label>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              value={newCardData.closingDay}
+              onChange={(e) => setNewCardData({...newCardData, closingDay: parseInt(e.target.value)})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                  : 'bg-white border-gray-300 text-gray-800'
+              }`}
+            />
+          </div>
+          <div>
+            <label className={`text-xs mb-1 block ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dia Vencimento</label>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              value={newCardData.dueDay}
+              onChange={(e) => setNewCardData({...newCardData, dueDay: parseInt(e.target.value)})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                  : 'bg-white border-gray-300 text-gray-800'
+              }`}
+            />
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={addCreditCard}
+            className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+          >
+            Adicionar Cartão
+          </button>
+          <button
+            onClick={() => {
+              setShowManageCreditCards(false);
+              setNewCardData({ name: '', owner: people[0]?.id || 1, closingDay: 1, dueDay: 10 });
+            }}
+            className={`px-6 py-3 rounded-lg transition-colors ${
+              darkMode 
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       <style jsx>{`
         @keyframes slide-in {
