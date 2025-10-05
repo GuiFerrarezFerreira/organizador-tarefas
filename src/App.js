@@ -872,6 +872,30 @@ useEffect(() => {
     }
   }, [financeCategories, isOnline, userId, isLoaded, networkStatus]);
 
+  useEffect(() => {
+    if (isOnline && userId && isLoaded && networkStatus) {
+      const syncTimeout = setTimeout(async () => {
+        const result = await savePeople(userId, people);
+        if (!result.success) {
+          addNotification(result.error, 'warning');
+        }
+      }, 1000);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [people, isOnline, userId, isLoaded, networkStatus]);
+
+  useEffect(() => {
+    if (isOnline && userId && isLoaded && networkStatus) {
+      const syncTimeout = setTimeout(async () => {
+        const result = await saveCreditCards(userId, creditCards);
+        if (!result.success) {
+          addNotification(result.error, 'warning');
+        }
+      }, 1000);
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [creditCards, isOnline, userId, isLoaded, networkStatus]);
+
   const saveFirebaseConfig = async () => {
     setSyncError('');
     setIsSyncing(true);
@@ -1043,7 +1067,10 @@ useEffect(() => {
         description: '',
         date: new Date().toISOString().split('T')[0],
         jobId: null,
-        completed: true
+        completed: true,
+        paymentMethod: 'checking',
+        creditCardId: null,
+        ownerId: people[0]?.id || 1
       });
       setShowAddTransaction(false);
       addNotification('Transação adicionada', 'success');
