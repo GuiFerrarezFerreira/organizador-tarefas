@@ -685,6 +685,8 @@ useEffect(() => {
     const tagsResult = await loadTags(userId);
     const transactionsResult = await loadTransactions(userId);
     const financeCategoriesResult = await loadFinanceCategories(userId);
+    const peopleResult = await loadPeople(userId);
+    const creditCardsResult = await loadCreditCards(userId);
     
     if (tasksResult.success && tasksResult.data) {
       setTasks(tasksResult.data);
@@ -715,7 +717,18 @@ useEffect(() => {
     } else if (!financeCategoriesResult.success) {
       addNotification(financeCategoriesResult.error, 'warning');
     }
-    
+
+    if (peopleResult.success && peopleResult.data) {
+      setPeople(peopleResult.data);
+    } else if (!peopleResult.success) {
+      addNotification(peopleResult.error, 'warning');
+    }
+
+    if (creditCardsResult.success && creditCardsResult.data) {
+      setCreditCards(creditCardsResult.data);
+    } else if (!creditCardsResult.success) {
+      addNotification(creditCardsResult.error, 'warning');
+    }
     setIsLoaded(true);
     
     const unsubscribeTasks = subscribeToTasks(
@@ -767,6 +780,26 @@ useEffect(() => {
         addNotification(error, 'error');
       }
     );
+
+    const unsubscribePeople = subscribeToPeople(
+      userId,
+      (newPeople) => {
+        setPeople(newPeople);
+      },
+      (error) => {
+        addNotification(error, 'error');
+      }
+    );
+
+    const unsubscribeCreditCards = subscribeToCreditCards(
+      userId,
+      (newCards) => {
+        setCreditCards(newCards);
+      },
+      (error) => {
+        addNotification(error, 'error');
+      }
+    );
     
     return () => {
       unsubscribeTasks();
@@ -774,6 +807,8 @@ useEffect(() => {
       unsubscribeTags();
       unsubscribeTransactions();
       unsubscribeFinanceCategories();
+      unsubscribePeople();
+      unsubscribeCreditCards();
     };
   };
 
