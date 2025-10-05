@@ -5,16 +5,15 @@ export default function FinanceForm({
   setNewTransaction, 
   categories, 
   jobs,
+  people,
+  creditCards,
   onSubmit, 
   onCancel, 
   darkMode 
 }) {
   const formatCurrencyInput = (value) => {
-    // Remove tudo exceto números
     const numbers = value.replace(/\D/g, '');
-    // Converte para centavos
     const cents = parseInt(numbers) || 0;
-    // Formata para BRL
     return (cents / 100).toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -31,6 +30,19 @@ export default function FinanceForm({
     cat.type === newTransaction.type || cat.type === 'ambos'
   );
 
+  const handleTypeChange = (newType) => {
+    const newFilteredCategories = categories.filter(cat => 
+      cat.type === newType || cat.type === 'ambos'
+    );
+    setNewTransaction({ 
+      ...newTransaction, 
+      type: newType,
+      categoryId: newFilteredCategories[0]?.id || null,
+      creditCardId: newType === 'receita' ? null : newTransaction.creditCardId,
+      paymentMethod: newType === 'receita' ? 'checking' : newTransaction.paymentMethod
+    });
+  };
+
   return (
     <div className={`mt-6 rounded-lg p-6 shadow-sm ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
       <h3 className={`text-lg font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
@@ -44,11 +56,7 @@ export default function FinanceForm({
             </label>
             <select
               value={newTransaction.type}
-              onChange={(e) => setNewTransaction({ 
-                ...newTransaction, 
-                type: e.target.value,
-                categoryId: filteredCategories[0]?.id || null
-              })}
+              onChange={(e) => handleTypeChange(e.target.value)}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 darkMode 
                   ? 'bg-gray-700 border-gray-600 text-gray-200' 
@@ -157,6 +165,81 @@ export default function FinanceForm({
             </select>
           </div>
         </div>
+
+        {/* NOVO: Responsável pela despesa/receita */}
+        <div>
+          <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            {newTransaction.type === 'receita' ? 'Quem recebeu' : 'Quem gastou'}
+          </label>
+          <select
+            value={newTransaction.ownerId}
+            onChange={(e) => setNewTransaction({ ...newTransaction, ownerId: parseInt(e.target.value) })}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              darkMode 
+                ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          >
+            {people.map(person => (
+              <option key={person.id} value={person.id}>{person.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* NOVO: Forma de pagamento (apenas para despesas) */}
+        {newTransaction.type === 'despesa' && (
+          <>
+            <div>
+              <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Forma de pagamento
+              </label>
+              <select
+                value={newTransaction.paymentMethod}
+                onChange={(e) => setNewTransaction({ 
+                  ...newTransaction, 
+                  paymentMethod: e.target.value,
+                  creditCardId: e.target.value === 'checking' ? null : newTransaction.creditCardId
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              >
+                <option value="checking">💳 Débito/Dinheiro</option>
+                <option value="credit">💳 Cartão de Crédito</option>
+              </select>
+            </div>
+
+            {/* NOVO: Seleção de cartão (apenas se forma de pagamento for crédito) */}
+            {newTransaction.paymentMethod === 'credit' && creditCards.length > 0 && (
+              <div>
+                <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Cartão de crédito
+                </label>
+                <select
+                  value={newTransaction.creditCardId || ''}
+                  onChange={(e) => setNewTransaction({ 
+                    ...newTransaction, 
+                    creditCardId: e.target.value ? parseInt(e.target.value) : null 
+                  })}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                      : 'bg-white border-gray-300 text-gray-800'
+                  }`}
+                >
+                  <option value="">Selecione um cartão</option>
+                  {creditCards.map(card => (
+                    <option key={card.id} value={card.id}>
+                      {card.name} (Fecha dia {card.closingDay})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </>
+        )}
 
         <div className="flex items-center gap-2">
           <input
