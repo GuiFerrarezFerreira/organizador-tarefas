@@ -8,6 +8,8 @@ export default function FinanceList({
   getCategoryColor, 
   getCategoryName,
   getJobName,
+  getPersonName,
+  getCreditCardName,
   darkMode 
 }) {
   const formatCurrency = (cents) => {
