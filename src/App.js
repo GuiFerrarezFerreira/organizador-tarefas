@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag, Search, Filter, SlidersHorizontal, DollarSign, TrendingUp, TrendingDown, Clock } from 'lucide-react';
-import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags, saveTransactions, loadTransactions, subscribeToTransactions, saveFinanceCategories, loadFinanceCategories, subscribeToFinanceCategories } from './firebase';
+import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags, saveTransactions, loadTransactions, subscribeToTransactions, saveFinanceCategories, loadFinanceCategories, subscribeToFinanceCategories, savePeople, loadPeople, subscribeToPeople, saveCreditCards, loadCreditCards, subscribeToCreditCards } from './firebase';
 
 // Componente de Resumo Financeiro
 const FinanceSummary = ({ transactions, darkMode }) => {
@@ -566,20 +566,16 @@ const [creditCards, setCreditCards] = useState(() => {
   });
 
   const [newTransaction, setNewTransaction] = useState({
-  type: 'receita',
-  categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
-  amount: 0,
-  description: '',
-  date: new Date().toISOString().split('T')[0],
-  jobId: null,
-  completed: true,
-  // NOVOS CAMPOS:
-  paymentMethod: 'checking', // 'checking' ou 'credit'
-  creditCardId: null,
-  ownerId: people[0]?.id || 1,
-  recurrence: 'once', // 'once', 'fixed', 'installment'
-  installments: 1,
-  currentInstallment: 1
+    type: 'receita',
+    categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
+    amount: 0,
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    jobId: null,
+    completed: true,
+    paymentMethod: 'checking',
+    creditCardId: null,
+    ownerId: people[0]?.id || 1
   });
 
   const [configForm, setConfigForm] = useState({
