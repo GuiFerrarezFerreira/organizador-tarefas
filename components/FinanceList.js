@@ -66,6 +66,20 @@ export default function FinanceList({
                         {getJobName(transaction.jobId)}
                       </span>
                     )}
+                    {transaction.ownerId && (
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        👤 {getPersonName(transaction.ownerId)}
+                      </span>
+                    )}
+                    {transaction.creditCardId && (
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        darkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        💳 {getCreditCardName(transaction.creditCardId)}
+                      </span>
+                    )}
                     {!transaction.completed && (
                       <span className={`px-2 py-1 rounded text-xs ${
                         darkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'
