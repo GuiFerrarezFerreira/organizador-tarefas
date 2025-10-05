@@ -12,8 +12,11 @@ export default function FinanceForm({
   darkMode 
 }) {
   const formatCurrencyInput = (value) => {
+    // Remove tudo exceto números
     const numbers = value.replace(/\D/g, '');
+    // Converte para centavos
     const cents = parseInt(numbers) || 0;
+    // Formata para BRL
     return (cents / 100).toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -30,6 +33,7 @@ export default function FinanceForm({
     cat.type === newTransaction.type || cat.type === 'ambos'
   );
 
+  // Quando o tipo muda para receita, limpa o cartão de crédito
   const handleTypeChange = (newType) => {
     const newFilteredCategories = categories.filter(cat => 
       cat.type === newType || cat.type === 'ambos'
@@ -206,36 +210,46 @@ export default function FinanceForm({
                     : 'bg-white border-gray-300 text-gray-800'
                 }`}
               >
-                <option value="checking">💳 Débito/Dinheiro</option>
+                <option value="checking">💰 Débito/Dinheiro</option>
                 <option value="credit">💳 Cartão de Crédito</option>
               </select>
             </div>
 
             {/* NOVO: Seleção de cartão (apenas se forma de pagamento for crédito) */}
-            {newTransaction.paymentMethod === 'credit' && creditCards.length > 0 && (
+            {newTransaction.paymentMethod === 'credit' && (
               <div>
                 <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   Cartão de crédito
                 </label>
-                <select
-                  value={newTransaction.creditCardId || ''}
-                  onChange={(e) => setNewTransaction({ 
-                    ...newTransaction, 
-                    creditCardId: e.target.value ? parseInt(e.target.value) : null 
-                  })}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                {creditCards.length > 0 ? (
+                  <select
+                    value={newTransaction.creditCardId || ''}
+                    onChange={(e) => setNewTransaction({ 
+                      ...newTransaction, 
+                      creditCardId: e.target.value ? parseInt(e.target.value) : null 
+                    })}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                        : 'bg-white border-gray-300 text-gray-800'
+                    }`}
+                  >
+                    <option value="">Selecione um cartão</option>
+                    {creditCards.map(card => (
+                      <option key={card.id} value={card.id}>
+                        {card.name} (Fecha dia {card.closingDay})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className={`w-full px-4 py-3 border rounded-lg ${
                     darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                      : 'bg-white border-gray-300 text-gray-800'
-                  }`}
-                >
-                  <option value="">Selecione um cartão</option>
-                  {creditCards.map(card => (
-                    <option key={card.id} value={card.id}>
-                      {card.name} (Fecha dia {card.closingDay})
-                    </option>
-                  ))}
-                </select>
+                      ? 'bg-gray-700 border-gray-600 text-gray-400' 
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}>
+                    Nenhum cartão cadastrado. Cadastre um cartão primeiro.
+                  </div>
+                )}
               </div>
             )}
           </>
