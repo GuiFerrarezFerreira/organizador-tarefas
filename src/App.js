@@ -20,7 +20,7 @@ const FinanceSummary = ({ transactions, darkMode }) => {
           acc.expense += t.amount;
         }
       }
-      return acc;f
+      return acc;
     }, { income: 0, expense: 0 });
   };
 
