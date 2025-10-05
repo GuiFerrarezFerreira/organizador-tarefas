@@ -20,7 +20,7 @@ const FinanceSummary = ({ transactions, darkMode }) => {
           acc.expense += t.amount;
         }
       }
-      return acc;
+      return acc;f
     }, { income: 0, expense: 0 });
   };
 
@@ -928,6 +928,8 @@ useEffect(() => {
       await saveTags(result.user.uid, tags);
       await saveTransactions(result.user.uid, transactions);
       await saveFinanceCategories(result.user.uid, financeCategories);
+      await savePeople(result.user.uid, people);
+      await saveCreditCards(result.user.uid, creditCards);
       
       setIsOnline(true);
       setShowSetup(false);
@@ -1579,6 +1581,8 @@ const getCreditCardName = (cardId) => {
               getCategoryColor={getCategoryColor}
               getCategoryName={getCategoryName}
               getJobName={getJobName}
+              getPersonName={getPersonName}
+              getCreditCardName={getCreditCardName}
               darkMode={darkMode}
             />
 
@@ -1600,6 +1604,8 @@ const getCreditCardName = (cardId) => {
                 setNewTransaction={setNewTransaction}
                 categories={financeCategories}
                 jobs={jobs}
+                people={people}
+                creditCards={creditCards}
                 onSubmit={addTransaction}
                 onCancel={() => setShowAddTransaction(false)}
                 darkMode={darkMode}
