@@ -2377,8 +2377,6 @@ const getCreditCardName = (cardId) => {
         </div>
       )}
 
-
-// ADICIONAR antes de <style jsx> (linha ~1731):
 {showManagePeople && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
