@@ -3,7 +3,6 @@ import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff
 import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags, saveTransactions, loadTransactions, subscribeToTransactions, saveFinanceCategories, loadFinanceCategories, subscribeToFinanceCategories, savePeople, loadPeople, subscribeToPeople, saveCreditCards, loadCreditCards, subscribeToCreditCards } from './firebase';
 import FinanceSummary from '../components/FinanceSummary';
 
-
 // Componente de Lista de Transações
 const FinanceList = ({ 
   transactions, 
