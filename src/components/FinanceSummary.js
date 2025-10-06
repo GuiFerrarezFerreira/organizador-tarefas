@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
+
 export default function FinanceSummary({ transactions, darkMode }) {
   const formatCurrency = (cents) => {
     return new Intl.NumberFormat('pt-BR', {
