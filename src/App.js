@@ -676,28 +676,73 @@ const initializeAndSync = async () => {
     setNewTask(prev => ({ ...prev, tags: selectedTags }));
   }, [selectedTags]);
 
-  const addTransaction = () => {
-    if (newTransaction.amount > 0) {
-      setTransactions([...transactions, { 
-        id: Date.now(), 
-        ...newTransaction
-      }]);
-      setNewTransaction({
-        type: 'receita',
-        categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
-        amount: 0,
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        jobId: null,
-        completed: true,
-        paymentMethod: 'checking',
-        creditCardId: null,
-        ownerId: people[0]?.id || 1
+const addTransaction = () => {
+  if (newTransaction.amount > 0) {
+    const baseTransaction = { 
+      id: Date.now(), 
+      ...newTransaction
+    };
+
+    let transactionsToAdd = [];
+
+    // Se for parcelado, criar múltiplas transações
+    if (newTransaction.isInstallment && newTransaction.installmentCount > 1) {
+      const parentId = baseTransaction.id;
+      
+      for (let i = 0; i < newTransaction.installmentCount; i++) {
+        const installmentDate = new Date(newTransaction.date);
+        installmentDate.setMonth(installmentDate.getMonth() + i);
+        
+        transactionsToAdd.push({
+          ...baseTransaction,
+          id: parentId + i,
+          parentTransactionId: parentId,
+          currentInstallment: i + 1,
+          date: installmentDate.toISOString().split('T')[0],
+          description: `${newTransaction.description} (${i + 1}/${newTransaction.installmentCount})`,
+          completed: i === 0 ? newTransaction.completed : false
+        });
+      }
+      
+      addNotification(`${newTransaction.installmentCount} parcelas criadas`, 'success');
+    } 
+    // Se for recorrente, apenas marcar (será criada automaticamente)
+    else if (newTransaction.isRecurring) {
+      transactionsToAdd.push({
+        ...baseTransaction,
+        description: `🔄 ${newTransaction.description}`
       });
-      setShowAddTransaction(false);
+      addNotification('Despesa recorrente criada', 'success');
+    }
+    // Transação única normal
+    else {
+      transactionsToAdd.push(baseTransaction);
       addNotification('Transação adicionada', 'success');
     }
-  };
+
+    setTransactions([...transactions, ...transactionsToAdd]);
+    
+    setNewTransaction({
+      type: 'receita',
+      categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
+      amount: 0,
+      description: '',
+      date: new Date().toISOString().split('T')[0],
+      jobId: null,
+      completed: true,
+      paymentMethod: 'checking',
+      creditCardId: null,
+      ownerId: people[0]?.id || 1,
+      isRecurring: false,
+      recurringType: 'monthly',
+      isInstallment: false,
+      installmentCount: 1,
+      currentInstallment: 1,
+      parentTransactionId: null
+    });
+    setShowAddTransaction(false);
+  }
+};
 
   const toggleTransaction = (id) => {
     setTransactions(transactions.map(t => 
