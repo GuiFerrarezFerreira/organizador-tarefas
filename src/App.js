@@ -256,17 +256,22 @@ useEffect(() => {
     }
   }, [firebaseConfig, userId]);
 
-  const initializeAndSync = async () => {
-    const result = initializeFirebase(firebaseConfig);
-    
-    if (!result.success) {
-      addNotification(result.error, 'error');
-      return;
-    }
-    
-    setIsOnline(true);
-    addNotification('Conectado à nuvem', 'success');
-    
+const initializeAndSync = async () => {
+  const result = initializeFirebase(firebaseConfig);
+  
+  if (!result.success) {
+    addNotification(result.error, 'error');
+    return;
+  }
+  
+  setIsOnline(true);
+  addNotification('Conectado à nuvem', 'success');
+  
+  // IMPORTANTE: Desabilitar atualizações locais temporariamente
+  setIsLoaded(false);
+  
+  try {
+    // Carregar dados da nuvem
     const tasksResult = await loadTasks(userId);
     const jobsResult = await loadJobs(userId);
     const tagsResult = await loadTags(userId);
@@ -275,129 +280,151 @@ useEffect(() => {
     const peopleResult = await loadPeople(userId);
     const creditCardsResult = await loadCreditCards(userId);
     
+    // Atualizar estados com dados da nuvem (se existirem)
     if (tasksResult.success && tasksResult.data) {
       setTasks(tasksResult.data);
+      localStorage.setItem('tasks', JSON.stringify(tasksResult.data));
     } else if (!tasksResult.success) {
       addNotification(tasksResult.error, 'warning');
     }
     
     if (jobsResult.success && jobsResult.data) {
       setJobs(jobsResult.data);
+      localStorage.setItem('jobs', JSON.stringify(jobsResult.data));
     } else if (!jobsResult.success) {
       addNotification(jobsResult.error, 'warning');
     }
 
     if (tagsResult.success && tagsResult.data) {
       setTags(tagsResult.data);
+      localStorage.setItem('tags', JSON.stringify(tagsResult.data));
     } else if (!tagsResult.success) {
       addNotification(tagsResult.error, 'warning');
     }
 
     if (transactionsResult.success && transactionsResult.data) {
       setTransactions(transactionsResult.data);
+      localStorage.setItem('transactions', JSON.stringify(transactionsResult.data));
     } else if (!transactionsResult.success) {
       addNotification(transactionsResult.error, 'warning');
     }
 
     if (financeCategoriesResult.success && financeCategoriesResult.data) {
       setFinanceCategories(financeCategoriesResult.data);
+      localStorage.setItem('financeCategories', JSON.stringify(financeCategoriesResult.data));
     } else if (!financeCategoriesResult.success) {
       addNotification(financeCategoriesResult.error, 'warning');
     }
 
     if (peopleResult.success && peopleResult.data) {
       setPeople(peopleResult.data);
+      localStorage.setItem('people', JSON.stringify(peopleResult.data));
     } else if (!peopleResult.success) {
       addNotification(peopleResult.error, 'warning');
     }
 
     if (creditCardsResult.success && creditCardsResult.data) {
       setCreditCards(creditCardsResult.data);
+      localStorage.setItem('creditCards', JSON.stringify(creditCardsResult.data));
     } else if (!creditCardsResult.success) {
       addNotification(creditCardsResult.error, 'warning');
     }
-    setIsLoaded(true);
-    
-    const unsubscribeTasks = subscribeToTasks(
-      userId,
-      (newTasks) => {
-        setTasks(newTasks);
-      },
-      (error) => {
-        addNotification(error, 'error');
-      }
-    );
-    
-    const unsubscribeJobs = subscribeToJobs(
-      userId,
-      (newJobs) => {
-        setJobs(newJobs);
-      },
-      (error) => {
-        addNotification(error, 'error');
-      }
-    );
+  } catch (error) {
+    console.error('Erro ao carregar dados da nuvem:', error);
+    addNotification('Usando dados locais', 'info');
+  }
+  
+  // Agora pode habilitar sincronização
+  setIsLoaded(true);
+  
+  // Configurar listeners de sincronização em tempo real
+  const unsubscribeTasks = subscribeToTasks(
+    userId,
+    (newTasks) => {
+      setTasks(newTasks);
+      localStorage.setItem('tasks', JSON.stringify(newTasks));
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+  
+  const unsubscribeJobs = subscribeToJobs(
+    userId,
+    (newJobs) => {
+      setJobs(newJobs);
+      localStorage.setItem('jobs', JSON.stringify(newJobs));
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
 
-    const unsubscribeTags = subscribeToTags(
-      userId,
-      (newTags) => {
-        setTags(newTags);
-      },
-      (error) => {
-        addNotification(error, 'error');
-      }
-    );
+  const unsubscribeTags = subscribeToTags(
+    userId,
+    (newTags) => {
+      setTags(newTags);
+      localStorage.setItem('tags', JSON.stringify(newTags));
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
 
-    const unsubscribeTransactions = subscribeToTransactions(
-      userId,
-      (newTransactions) => {
-        setTransactions(newTransactions);
-      },
-      (error) => {
-        addNotification(error, 'error');
-      }
-    );
+  const unsubscribeTransactions = subscribeToTransactions(
+    userId,
+    (newTransactions) => {
+      setTransactions(newTransactions);
+      localStorage.setItem('transactions', JSON.stringify(newTransactions));
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
 
-    const unsubscribeFinanceCategories = subscribeToFinanceCategories(
-      userId,
-      (newCategories) => {
-        setFinanceCategories(newCategories);
-      },
-      (error) => {
-        addNotification(error, 'error');
-      }
-    );
+  const unsubscribeFinanceCategories = subscribeToFinanceCategories(
+    userId,
+    (newCategories) => {
+      setFinanceCategories(newCategories);
+      localStorage.setItem('financeCategories', JSON.stringify(newCategories));
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
 
-    const unsubscribePeople = subscribeToPeople(
-      userId,
-      (newPeople) => {
-        setPeople(newPeople);
-      },
-      (error) => {
-        addNotification(error, 'error');
-      }
-    );
+  const unsubscribePeople = subscribeToPeople(
+    userId,
+    (newPeople) => {
+      setPeople(newPeople);
+      localStorage.setItem('people', JSON.stringify(newPeople));
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
 
-    const unsubscribeCreditCards = subscribeToCreditCards(
-      userId,
-      (newCards) => {
-        setCreditCards(newCards);
-      },
-      (error) => {
-        addNotification(error, 'error');
-      }
-    );
-    
-    return () => {
-      unsubscribeTasks();
-      unsubscribeJobs();
-      unsubscribeTags();
-      unsubscribeTransactions();
-      unsubscribeFinanceCategories();
-      unsubscribePeople();
-      unsubscribeCreditCards();
-    };
+  const unsubscribeCreditCards = subscribeToCreditCards(
+    userId,
+    (newCards) => {
+      setCreditCards(newCards);
+      localStorage.setItem('creditCards', JSON.stringify(newCards));
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+  
+  return () => {
+    unsubscribeTasks();
+    unsubscribeJobs();
+    unsubscribeTags();
+    unsubscribeTransactions();
+    unsubscribeFinanceCategories();
+    unsubscribePeople();
+    unsubscribeCreditCards();
   };
+};
 
   useEffect(() => {
     if (isOnline && userId && isLoaded && networkStatus) {
