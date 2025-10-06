@@ -153,16 +153,22 @@ const [creditCards, setCreditCards] = useState(() => {
   });
 
   const [newTransaction, setNewTransaction] = useState({
-    type: 'receita',
-    categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
-    amount: 0,
-    description: '',
-    date: new Date().toISOString().split('T')[0],
-    jobId: null,
-    completed: true,
-    paymentMethod: 'checking',
-    creditCardId: null,
-    ownerId: people[0]?.id || 1
+  type: 'receita',
+  categoryId: financeCategories.find(c => c.type === 'receita')?.id || 1,
+  amount: 0,
+  description: '',
+  date: new Date().toISOString().split('T')[0],
+  jobId: null,
+  completed: true,
+  paymentMethod: 'checking',
+  creditCardId: null,
+  ownerId: people[0]?.id || 1,
+  isRecurring: false,
+  recurringType: 'monthly', // monthly, weekly, yearly
+  isInstallment: false,
+  installmentCount: 1,
+  currentInstallment: 1,
+  parentTransactionId: null // Para vincular parcelas
   });
 
   const [configForm, setConfigForm] = useState({
