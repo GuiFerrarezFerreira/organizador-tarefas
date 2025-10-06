@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag, Search, Filter, SlidersHorizontal, DollarSign, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags, saveTransactions, loadTransactions, subscribeToTransactions, saveFinanceCategories, loadFinanceCategories, subscribeToFinanceCategories, savePeople, loadPeople, subscribeToPeople, saveCreditCards, loadCreditCards, subscribeToCreditCards } from './firebase';
-import FinanceSummary from '../components/FinanceSummary';
+import FinanceSummary from './components/FinanceSummary';
 
 // Componente de Lista de Transações
 const FinanceList = ({ 
