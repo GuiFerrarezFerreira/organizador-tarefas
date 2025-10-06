@@ -81,6 +81,20 @@ export default function FinanceList({
                         💳 {getCreditCardName(transaction.creditCardId)}
                       </span>
                     )}
+                    {transaction.isRecurring && (
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        darkMode ? 'bg-indigo-900 text-indigo-200' : 'bg-indigo-100 text-indigo-700'
+                      }`}>
+                        🔄 Recorrente ({transaction.recurringType === 'monthly' ? 'Mensal' : transaction.recurringType === 'weekly' ? 'Semanal' : 'Anual'})
+                      </span>
+                    )}
+                    {transaction.isInstallment && transaction.currentInstallment && (
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        darkMode ? 'bg-cyan-900 text-cyan-200' : 'bg-cyan-100 text-cyan-700'
+                      }`}>
+                        📊 {transaction.currentInstallment}/{transaction.installmentCount}
+                      </span>
+                    )}                    
                     {!transaction.completed && (
                       <span className={`px-2 py-1 rounded text-xs ${
                         darkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700'
