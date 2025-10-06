@@ -1,5 +1,4 @@
-import React from 'react';
-
+import React, { useState } from 'react';
 
 export default function FinanceForm({ 
   newTransaction, 
@@ -13,11 +12,8 @@ export default function FinanceForm({
   darkMode 
 }) {
   const formatCurrencyInput = (value) => {
-    // Remove tudo exceto números
     const numbers = value.replace(/\D/g, '');
-    // Converte para centavos
     const cents = parseInt(numbers) || 0;
-    // Formata para BRL
     return (cents / 100).toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -34,7 +30,6 @@ export default function FinanceForm({
     cat.type === newTransaction.type || cat.type === 'ambos'
   );
 
-  // Quando o tipo muda para receita, limpa o cartão de crédito
   const handleTypeChange = (newType) => {
     const newFilteredCategories = categories.filter(cat => 
       cat.type === newType || cat.type === 'ambos'
@@ -44,7 +39,9 @@ export default function FinanceForm({
       type: newType,
       categoryId: newFilteredCategories[0]?.id || null,
       creditCardId: newType === 'receita' ? null : newTransaction.creditCardId,
-      paymentMethod: newType === 'receita' ? 'checking' : newTransaction.paymentMethod
+      paymentMethod: newType === 'receita' ? 'checking' : newTransaction.paymentMethod,
+      isRecurring: newType === 'receita' ? false : newTransaction.isRecurring,
+      isInstallment: newType === 'receita' ? false : newTransaction.isInstallment
     });
   };
 
@@ -95,7 +92,7 @@ export default function FinanceForm({
 
         <div>
           <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Valor
+            Valor {newTransaction.isInstallment && `(por parcela)`}
           </label>
           <div className="relative">
             <span className={`absolute left-4 top-3 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -113,6 +110,11 @@ export default function FinanceForm({
               }`}
             />
           </div>
+          {newTransaction.isInstallment && newTransaction.installmentCount > 0 && (
+            <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Total: {formatCurrencyInput((newTransaction.amount * newTransaction.installmentCount).toString())}
+            </p>
+          )}
         </div>
 
         <div>
@@ -136,7 +138,7 @@ export default function FinanceForm({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Data
+              Data {newTransaction.isInstallment ? '(primeira parcela)' : newTransaction.isRecurring ? '(primeira ocorrência)' : ''}
             </label>
             <input
               type="date"
@@ -171,7 +173,7 @@ export default function FinanceForm({
           </div>
         </div>
 
-        {/* NOVO: Responsável pela despesa/receita */}
+        {/* Responsável */}
         <div>
           <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             {newTransaction.type === 'receita' ? 'Quem recebeu' : 'Quem gastou'}
@@ -191,7 +193,7 @@ export default function FinanceForm({
           </select>
         </div>
 
-        {/* NOVO: Forma de pagamento (apenas para despesas) */}
+        {/* Forma de pagamento (apenas para despesas) */}
         {newTransaction.type === 'despesa' && (
           <>
             <div>
@@ -216,7 +218,7 @@ export default function FinanceForm({
               </select>
             </div>
 
-            {/* NOVO: Seleção de cartão (apenas se forma de pagamento for crédito) */}
+            {/* Seleção de cartão */}
             {newTransaction.paymentMethod === 'credit' && (
               <div>
                 <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -253,6 +255,95 @@ export default function FinanceForm({
                 )}
               </div>
             )}
+
+            {/* NOVO: Opções de recorrência e parcelamento */}
+            <div className={`p-4 rounded-lg space-y-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newTransaction.isRecurring}
+                    onChange={(e) => setNewTransaction({ 
+                      ...newTransaction, 
+                      isRecurring: e.target.checked,
+                      isInstallment: e.target.checked ? false : newTransaction.isInstallment
+                    })}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                    🔄 Despesa Fixa/Recorrente
+                  </span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newTransaction.isInstallment}
+                    onChange={(e) => setNewTransaction({ 
+                      ...newTransaction, 
+                      isInstallment: e.target.checked,
+                      isRecurring: e.target.checked ? false : newTransaction.isRecurring
+                    })}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                    📊 Parcelado
+                  </span>
+                </label>
+              </div>
+
+              {/* Opções de recorrência */}
+              {newTransaction.isRecurring && (
+                <div>
+                  <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Frequência
+                  </label>
+                  <select
+                    value={newTransaction.recurringType}
+                    onChange={(e) => setNewTransaction({ ...newTransaction, recurringType: e.target.value })}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      darkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-200' 
+                        : 'bg-white border-gray-300 text-gray-800'
+                    }`}
+                  >
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensal</option>
+                    <option value="yearly">Anual</option>
+                  </select>
+                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    ⚠️ Será criada automaticamente todos os meses na data especificada
+                  </p>
+                </div>
+              )}
+
+              {/* Opções de parcelamento */}
+              {newTransaction.isInstallment && (
+                <div>
+                  <label className={`text-sm mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Número de parcelas
+                  </label>
+                  <input
+                    type="number"
+                    min="2"
+                    max="48"
+                    value={newTransaction.installmentCount}
+                    onChange={(e) => setNewTransaction({ 
+                      ...newTransaction, 
+                      installmentCount: parseInt(e.target.value) || 2
+                    })}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      darkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-200' 
+                        : 'bg-white border-gray-300 text-gray-800'
+                    }`}
+                  />
+                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    ⚠️ Serão criadas {newTransaction.installmentCount}x de {formatCurrencyInput(newTransaction.amount.toString())}
+                  </p>
+                </div>
+              )}
+            </div>
           </>
         )}
 
