@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Calendar, Briefcase, CheckCircle, Clock } from 'lucide-react';
 
+
 export default function FinanceList({ 
   transactions, 
   onToggle, 
