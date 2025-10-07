@@ -129,7 +129,7 @@ export default function FinanceList({
             
             <div className="flex gap-2">
               <button
-                onClickonClick={() => onEdit(transaction)}
+                onClick={() => onEdit(transaction)}
                 className={`transition-colors ${
                   darkMode ? 'text-gray-500 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'
                 }`}
