@@ -126,14 +126,26 @@ export default function FinanceList({
               </div>
             </div>
             
-            <button
-              onClick={() => onDelete(transaction.id)}
-              className={`transition-colors ${
-                darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
-              }`}
-            >
-              <X size={20} />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => startEditTransaction(transaction)}
+                className={`transition-colors ${
+                  darkMode ? 'text-gray-500 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'
+                }`}
+                title="Editar transação"
+              >
+                <Edit2 size={18} />
+              </button>
+              <button
+                onClick={() => onDelete(transaction.id)}
+                className={`transition-colors ${
+                  darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                }`}
+                title="Excluir transação"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
         </div>
       ))}
