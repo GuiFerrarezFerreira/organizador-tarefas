@@ -28,6 +28,20 @@ export default function TaskForm({
               : 'bg-white border-gray-300 text-gray-800'
           }`}
         />
+
+        {/* NOVO CAMPO DE DESCRIÇÃO */}
+        <textarea
+          placeholder="Descrição (opcional)"
+          value={newTask.description}
+          onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+          rows="3"
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+            darkMode 
+              ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
+              : 'bg-white border-gray-300 text-gray-800'
+          }`}
+        />
+                
         <div className="grid grid-cols-2 gap-4">
           <select
             value={newTask.jobId}
