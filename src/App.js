@@ -2569,38 +2569,6 @@ const getCreditCardName = (cardId) => {
         </div>
       )}
 
-{/* Modal de Edição de Tarefa */}
-{editingTask && editedTask && (
-  <TaskEditModal
-    task={editingTask}
-    editedTask={editedTask}
-    setEditedTask={setEditedTask}
-    jobs={jobs}
-    tags={tags}
-    selectedEditTags={selectedEditTags}
-    toggleEditTag={toggleEditTag}
-    onSave={saveTaskEdit}
-    onCancel={cancelTaskEdit}
-    darkMode={darkMode}
-  />
-)}
-
-{/* Modal de Edição de Transação */}
-{editingTransaction && editedTransaction && (
-  <TransactionEditModal
-    transaction={editingTransaction}
-    editedTransaction={editedTransaction}
-    setEditedTransaction={setEditedTransaction}
-    categories={financeCategories}
-    jobs={jobs}
-    people={people}
-    creditCards={creditCards}
-    onSave={saveTransactionEdit}
-    onCancel={cancelTransactionEdit}
-    darkMode={darkMode}
-  />
-)}
-
       <style jsx>{`
         @keyframes slide-in {
           from {
