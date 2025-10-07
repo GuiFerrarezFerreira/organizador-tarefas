@@ -218,46 +218,56 @@ const [creditCards, setCreditCards] = useState(() => {
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
+    localStorage.setItem('lastModified', new Date().toISOString());        
   }, [tasks]);
 
   useEffect(() => {
     localStorage.setItem('jobs', JSON.stringify(jobs));
+    localStorage.setItem('lastModified', new Date().toISOString());    
   }, [jobs]);
 
   useEffect(() => {
     localStorage.setItem('tags', JSON.stringify(tags));
+    localStorage.setItem('lastModified', new Date().toISOString());
   }, [tags]);
 
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
+    localStorage.setItem('lastModified', new Date().toISOString());
   }, [transactions]);
 
   useEffect(() => {
     localStorage.setItem('financeCategories', JSON.stringify(financeCategories));
+    localStorage.setItem('lastModified', new Date().toISOString());    
   }, [financeCategories]);
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    localStorage.setItem('lastModified', new Date().toISOString());    
   }, [darkMode]);
 
   useEffect(() => {
     if (userEmail) {
       localStorage.setItem('userEmail', userEmail);
+    localStorage.setItem('lastModified', new Date().toISOString());      
     }
   }, [userEmail]);
 
   useEffect(() => {
     if (userId) {
       localStorage.setItem('userId', userId);
+    localStorage.setItem('lastModified', new Date().toISOString());      
     }
   }, [userId]);
 
   useEffect(() => {
     localStorage.setItem('people', JSON.stringify(people));
+    localStorage.setItem('lastModified', new Date().toISOString());    
     }, [people]);
 
 useEffect(() => {
   localStorage.setItem('creditCards', JSON.stringify(creditCards));
+    localStorage.setItem('lastModified', new Date().toISOString());  
 }, [creditCards]);
   useEffect(() => {
     if (firebaseConfig && userId) {
