@@ -4,7 +4,7 @@ import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs
 import FinanceSummary from './components/FinanceSummary';
 import FinanceList from './components/FinanceList';
 import FinanceForm from './components/FinanceForm';
-
+import FinanceByPerson from './components/FinanceByPerson';  
 
 
 
@@ -19,6 +19,7 @@ export default function App() {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showManageFinanceCategories, setShowManageFinanceCategories] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [showFinanceByPerson, setShowFinanceByPerson] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -1311,107 +1312,137 @@ const getCreditCardName = (cardId) => {
           </div>
         </div>
 
-        {activeTab === 'finance' && (
-          <div>
-            <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
-
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setViewMode('daily')}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    viewMode === 'daily'
-                      ? 'bg-blue-500 text-white'
-                      : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
-                  }`}
-                >
-                  Hoje
-                </button>
-                <button
-                  onClick={() => setViewMode('weekly')}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    viewMode === 'weekly'
-                      ? 'bg-blue-500 text-white'
-                      : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
-                  }`}
-                >
-                  Esta Semana
-                </button>
-                <button
-                  onClick={() => setViewMode('monthly')}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    viewMode === 'monthly'
-                      ? 'bg-blue-500 text-white'
-                      : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
-                  }`}
-                >
-                  Este Mês
-                </button>
-                {viewMode === 'monthly' && (
-                  <input
-                    type="month"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className={`px-4 py-2 rounded-lg text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      darkMode 
-                        ? 'bg-gray-800 border-gray-600 text-gray-200' 
-                        : 'bg-white border-gray-300 text-gray-800'
-                    }`}
-                  />
-                )}
-              </div>
-
-              <button
-                onClick={() => setShowManageFinanceCategories(true)}
-                className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                  darkMode 
-                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Gerenciar Categorias
-              </button>
-            </div>
-
-            <FinanceList
-              transactions={sortedTransactions}
-              onToggle={toggleTransaction}
-              onDelete={deleteTransaction}
-              getCategoryColor={getCategoryColor}
-              getCategoryName={getCategoryName}
-              getJobName={getJobName}
-              getPersonName={getPersonName}
-              getCreditCardName={getCreditCardName}
-              darkMode={darkMode}
-            />
-
-            {!showAddTransaction ? (
-              <button
-                onClick={() => setShowAddTransaction(true)}
-                className={`mt-6 w-full border-2 border-dashed rounded-lg p-4 transition-colors flex items-center justify-center gap-2 ${
-                  darkMode 
-                    ? 'border-gray-700 text-gray-500 hover:border-blue-500 hover:text-blue-400 bg-gray-800' 
-                    : 'border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-500 bg-white'
-                }`}
-              >
-                <Plus size={20} />
-                <span>Adicionar transação</span>
-              </button>
-            ) : (
-              <FinanceForm
-                newTransaction={newTransaction}
-                setNewTransaction={setNewTransaction}
-                categories={financeCategories}
-                jobs={jobs}
-                people={people}
-                creditCards={creditCards}
-                onSubmit={addTransaction}
-                onCancel={() => setShowAddTransaction(false)}
-                darkMode={darkMode}
-              />
-            )}
-          </div>
+{activeTab === 'finance' && (
+  <div>
+    {/* Botões de controle */}
+    <div className="mb-6 flex items-center justify-between">
+      <div className="flex gap-2">
+        <button
+          onClick={() => setViewMode('daily')}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            viewMode === 'daily'
+              ? 'bg-blue-500 text-white'
+              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
+          }`}
+        >
+          Hoje
+        </button>
+        <button
+          onClick={() => setViewMode('weekly')}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            viewMode === 'weekly'
+              ? 'bg-blue-500 text-white'
+              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
+          }`}
+        >
+          Esta Semana
+        </button>
+        <button
+          onClick={() => setViewMode('monthly')}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            viewMode === 'monthly'
+              ? 'bg-blue-500 text-white'
+              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
+          }`}
+        >
+          Este Mês
+        </button>
+        {viewMode === 'monthly' && (
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className={`px-4 py-2 rounded-lg text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              darkMode 
+                ? 'bg-gray-800 border-gray-600 text-gray-200' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          />
         )}
+      </div>
+
+      <div className="flex gap-2">
+        {/* NOVO: Botão para alternar visualização */}
+        <button
+          onClick={() => setShowFinanceByPerson(!showFinanceByPerson)}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            showFinanceByPerson
+              ? 'bg-purple-500 text-white'
+              : darkMode 
+              ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
+        </button>
+
+        <button
+          onClick={() => setShowManageFinanceCategories(true)}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            darkMode 
+              ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          Gerenciar Categorias
+        </button>
+      </div>
+    </div>
+
+    {/* Renderização condicional */}
+    {showFinanceByPerson ? (
+      // NOVO: Mostra relatório por pessoa
+      <FinanceByPerson
+        transactions={sortedTransactions}
+        people={people}
+        darkMode={darkMode}
+      />
+    ) : (
+      // Visualização normal (lista)
+      <>
+        <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
+
+        <FinanceList
+          transactions={sortedTransactions}
+          onToggle={toggleTransaction}
+          onDelete={deleteTransaction}
+          getCategoryColor={getCategoryColor}
+          getCategoryName={getCategoryName}
+          getJobName={getJobName}
+          getPersonName={getPersonName}
+          getCreditCardName={getCreditCardName}
+          darkMode={darkMode}
+        />
+
+        {!showAddTransaction ? (
+          <button
+            onClick={() => setShowAddTransaction(true)}
+            className={`mt-6 w-full border-2 border-dashed rounded-lg p-4 transition-colors flex items-center justify-center gap-2 ${
+              darkMode 
+                ? 'border-gray-700 text-gray-500 hover:border-blue-500 hover:text-blue-400 bg-gray-800' 
+                : 'border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-500 bg-white'
+            }`}
+          >
+            <Plus size={20} />
+            <span>Adicionar transação</span>
+          </button>
+        ) : (
+          <FinanceForm
+            newTransaction={newTransaction}
+            setNewTransaction={setNewTransaction}
+            categories={financeCategories}
+            jobs={jobs}
+            people={people}
+            creditCards={creditCards}
+            onSubmit={addTransaction}
+            onCancel={() => setShowAddTransaction(false)}
+            darkMode={darkMode}
+          />
+        )}
+      </>
+    )}
+  </div>
+)}
 
         {activeTab !== 'finance' && (
           <div>
