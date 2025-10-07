@@ -1,10 +1,11 @@
 import React from 'react';
-import { X, Calendar, Briefcase, Tag } from 'lucide-react';
+import { X, Calendar, Briefcase, Tag, Edit2 } from 'lucide-react';
 
 export default function TaskList({ 
   tasks, 
   onToggle, 
-  onDelete, 
+  onDelete,
+  onEdit, // Certifique-se de que essa prop existe
   getJobColor, 
   getJobName, 
   getTagColor, 
@@ -57,12 +58,25 @@ export default function TaskList({
                   </>
                 )}
               </div>
-              <p className={`mb-2 ${task.completed 
+              
+              {/* TÍTULO */}
+              <p className={`mb-1 font-medium ${task.completed 
                 ? `line-through ${darkMode ? 'text-gray-500' : 'text-gray-400'}` 
                 : `${darkMode ? 'text-gray-200' : 'text-gray-800'}`
               }`}>
                 {task.title}
               </p>
+              
+              {/* DESCRIÇÃO - NOVO */}
+              {task.description && (
+                <p className={`mb-2 text-sm ${task.completed 
+                  ? `line-through ${darkMode ? 'text-gray-600' : 'text-gray-500'}` 
+                  : `${darkMode ? 'text-gray-400' : 'text-gray-600'}`
+                }`}>
+                  {task.description}
+                </p>
+              )}
+              
               <div className={`flex items-center gap-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 <span className="flex items-center gap-1">
                   <Calendar size={14} />
@@ -71,14 +85,27 @@ export default function TaskList({
                 {task.time && <span>{task.time}</span>}
               </div>
             </div>
-            <button
-              onClick={() => onDelete(task.id)}
-              className={`transition-colors ${
-                darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
-              }`}
-            >
-              <X size={20} />
-            </button>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEdit(task)}
+                className={`transition-colors ${
+                  darkMode ? 'text-gray-500 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'
+                }`}
+                title="Editar tarefa"
+              >
+                <Edit2 size={18} />
+              </button>
+              <button
+                onClick={() => onDelete(task.id)}
+                className={`transition-colors ${
+                  darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+                }`}
+                title="Excluir tarefa"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
         </div>
       ))}
