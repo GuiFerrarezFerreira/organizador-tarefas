@@ -751,6 +751,62 @@ const useLocalData = async () => {
     setTasks(tasks.filter(task => task.id !== id));
     addNotification('Tarefa removida', 'info');
   };
+// Funções para edição de tarefas
+const startEditTask = (task) => {
+  setEditingTask(task);
+  setEditedTask({ ...task });
+  setSelectedEditTags(task.tags || []);
+};
+
+const toggleEditTag = (tagId) => {
+  if (selectedEditTags.includes(tagId)) {
+    setSelectedEditTags(selectedEditTags.filter(id => id !== tagId));
+  } else {
+    setSelectedEditTags([...selectedEditTags, tagId]);
+  }
+};
+
+const saveTaskEdit = () => {
+  if (editedTask && editedTask.title.trim()) {
+    setTasks(tasks.map(task => 
+      task.id === editedTask.id 
+        ? { ...editedTask, tags: selectedEditTags }
+        : task
+    ));
+    setEditingTask(null);
+    setEditedTask(null);
+    setSelectedEditTags([]);
+    addNotification('Tarefa atualizada', 'success');
+  }
+};
+
+const cancelTaskEdit = () => {
+  setEditingTask(null);
+  setEditedTask(null);
+  setSelectedEditTags([]);
+};
+
+// Funções para edição de transações
+const startEditTransaction = (transaction) => {
+  setEditingTransaction(transaction);
+  setEditedTransaction({ ...transaction });
+};
+
+const saveTransactionEdit = () => {
+  if (editedTransaction && editedTransaction.amount > 0) {
+    setTransactions(transactions.map(t => 
+      t.id === editedTransaction.id ? editedTransaction : t
+    ));
+    setEditingTransaction(null);
+    setEditedTransaction(null);
+    addNotification('Transação atualizada', 'success');
+  }
+};
+
+const cancelTransactionEdit = () => {
+  setEditingTransaction(null);
+  setEditedTransaction(null);
+};
 
   const addJob = () => {
     if (newJobName.trim()) {
