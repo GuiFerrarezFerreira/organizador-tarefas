@@ -346,6 +346,216 @@ const initializeAndSync = async () => {
   setupRealtimeListeners();
 };
 
+const loadCloudData = async (tasksResult, jobsResult, tagsResult, transactionsResult, 
+                              financeCategoriesResult, peopleResult, creditCardsResult) => {
+  if (tasksResult.success && tasksResult.data) {
+    setTasks(tasksResult.data);
+    localStorage.setItem('tasks', JSON.stringify(tasksResult.data));
+  } else if (!tasksResult.success) {
+    addNotification(tasksResult.error, 'warning');
+  }
+  
+  if (jobsResult.success && jobsResult.data) {
+    setJobs(jobsResult.data);
+    localStorage.setItem('jobs', JSON.stringify(jobsResult.data));
+  } else if (!jobsResult.success) {
+    addNotification(jobsResult.error, 'warning');
+  }
+
+  if (tagsResult.success && tagsResult.data) {
+    setTags(tagsResult.data);
+    localStorage.setItem('tags', JSON.stringify(tagsResult.data));
+  } else if (!tagsResult.success) {
+    addNotification(tagsResult.error, 'warning');
+  }
+
+  if (transactionsResult.success && transactionsResult.data) {
+    setTransactions(transactionsResult.data);
+    localStorage.setItem('transactions', JSON.stringify(transactionsResult.data));
+  } else if (!transactionsResult.success) {
+    addNotification(transactionsResult.error, 'warning');
+  }
+
+  if (financeCategoriesResult.success && financeCategoriesResult.data) {
+    setFinanceCategories(financeCategoriesResult.data);
+    localStorage.setItem('financeCategories', JSON.stringify(financeCategoriesResult.data));
+  } else if (!financeCategoriesResult.success) {
+    addNotification(financeCategoriesResult.error, 'warning');
+  }
+
+  if (peopleResult.success && peopleResult.data) {
+    setPeople(peopleResult.data);
+    localStorage.setItem('people', JSON.stringify(peopleResult.data));
+  } else if (!peopleResult.success) {
+    addNotification(peopleResult.error, 'warning');
+  }
+
+  if (creditCardsResult.success && creditCardsResult.data) {
+    setCreditCards(creditCardsResult.data);
+    localStorage.setItem('creditCards', JSON.stringify(creditCardsResult.data));
+  } else if (!creditCardsResult.success) {
+    addNotification(creditCardsResult.error, 'warning');
+  }
+  
+  // Atualizar timestamp
+  localStorage.setItem('lastModified', new Date().toISOString());
+};
+
+const setupRealtimeListeners = () => {
+  const unsubscribeTasks = subscribeToTasks(
+    userId,
+    (newTasks) => {
+      setTasks(newTasks);
+      localStorage.setItem('tasks', JSON.stringify(newTasks));
+      localStorage.setItem('lastModified', new Date().toISOString());
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+  
+  const unsubscribeJobs = subscribeToJobs(
+    userId,
+    (newJobs) => {
+      setJobs(newJobs);
+      localStorage.setItem('jobs', JSON.stringify(newJobs));
+      localStorage.setItem('lastModified', new Date().toISOString());
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+
+  const unsubscribeTags = subscribeToTags(
+    userId,
+    (newTags) => {
+      setTags(newTags);
+      localStorage.setItem('tags', JSON.stringify(newTags));
+      localStorage.setItem('lastModified', new Date().toISOString());
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+
+  const unsubscribeTransactions = subscribeToTransactions(
+    userId,
+    (newTransactions) => {
+      setTransactions(newTransactions);
+      localStorage.setItem('transactions', JSON.stringify(newTransactions));
+      localStorage.setItem('lastModified', new Date().toISOString());
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+
+  const unsubscribeFinanceCategories = subscribeToFinanceCategories(
+    userId,
+    (newCategories) => {
+      setFinanceCategories(newCategories);
+      localStorage.setItem('financeCategories', JSON.stringify(newCategories));
+      localStorage.setItem('lastModified', new Date().toISOString());
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+
+  const unsubscribePeople = subscribeToPeople(
+    userId,
+    (newPeople) => {
+      setPeople(newPeople);
+      localStorage.setItem('people', JSON.stringify(newPeople));
+      localStorage.setItem('lastModified', new Date().toISOString());
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+
+  const unsubscribeCreditCards = subscribeToCreditCards(
+    userId,
+    (newCards) => {
+      setCreditCards(newCards);
+      localStorage.setItem('creditCards', JSON.stringify(newCards));
+      localStorage.setItem('lastModified', new Date().toISOString());
+    },
+    (error) => {
+      addNotification(error, 'error');
+    }
+  );
+  
+  return () => {
+    unsubscribeTasks();
+    unsubscribeJobs();
+    unsubscribeTags();
+    unsubscribeTransactions();
+    unsubscribeFinanceCategories();
+    unsubscribePeople();
+    unsubscribeCreditCards();
+  };
+};
+
+const useCloudData = async () => {
+  setShowConflictModal(false);
+  
+  if (!conflictData) return;
+  
+  // Usar dados da nuvem
+  if (conflictData.cloud.tasks) {
+    setTasks(conflictData.cloud.tasks);
+    localStorage.setItem('tasks', JSON.stringify(conflictData.cloud.tasks));
+  }
+  if (conflictData.cloud.jobs) {
+    setJobs(conflictData.cloud.jobs);
+    localStorage.setItem('jobs', JSON.stringify(conflictData.cloud.jobs));
+  }
+  if (conflictData.cloud.tags) {
+    setTags(conflictData.cloud.tags);
+    localStorage.setItem('tags', JSON.stringify(conflictData.cloud.tags));
+  }
+  if (conflictData.cloud.transactions) {
+    setTransactions(conflictData.cloud.transactions);
+    localStorage.setItem('transactions', JSON.stringify(conflictData.cloud.transactions));
+  }
+  if (conflictData.cloud.financeCategories) {
+    setFinanceCategories(conflictData.cloud.financeCategories);
+    localStorage.setItem('financeCategories', JSON.stringify(conflictData.cloud.financeCategories));
+  }
+  if (conflictData.cloud.people) {
+    setPeople(conflictData.cloud.people);
+    localStorage.setItem('people', JSON.stringify(conflictData.cloud.people));
+  }
+  if (conflictData.cloud.creditCards) {
+    setCreditCards(conflictData.cloud.creditCards);
+    localStorage.setItem('creditCards', JSON.stringify(conflictData.cloud.creditCards));
+  }
+  
+  localStorage.setItem('lastModified', new Date().toISOString());
+  setupRealtimeListeners();
+  addNotification('Dados da nuvem carregados', 'success');
+};
+
+const useLocalData = async () => {
+  setShowConflictModal(false);
+  
+  if (!conflictData) return;
+  
+  // Manter dados locais e enviar para nuvem
+  await saveTasks(userId, conflictData.local.tasks);
+  await saveJobs(userId, conflictData.local.jobs);
+  await saveTags(userId, conflictData.local.tags);
+  await saveTransactions(userId, conflictData.local.transactions);
+  await saveFinanceCategories(userId, conflictData.local.financeCategories);
+  await savePeople(userId, conflictData.local.people);
+  await saveCreditCards(userId, conflictData.local.creditCards);
+  
+  localStorage.setItem('lastModified', new Date().toISOString());
+  setupRealtimeListeners();
+  addNotification('Dados locais enviados para nuvem', 'success');
+};
+
   useEffect(() => {
     if (isOnline && userId && isLoaded && networkStatus) {
       const syncTimeout = setTimeout(async () => {
