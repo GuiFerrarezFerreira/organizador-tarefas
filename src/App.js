@@ -2419,6 +2419,88 @@ const getCreditCardName = (cardId) => {
   </div>
 )}
 
+{/* Modal de Conflito de Dados */}
+      {showConflictModal && conflictData && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className={`rounded-lg p-6 max-w-lg w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="mb-4">
+              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                ⚠️ Conflito de Dados Detectado
+              </h3>
+              <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Encontramos dados diferentes no seu dispositivo e na nuvem. 
+                Escolha qual versão deseja manter:
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              {/* Dados Locais */}
+              <div className={`p-4 rounded-lg border-2 ${darkMode ? 'bg-gray-700 border-blue-500' : 'bg-blue-50 border-blue-300'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    📱 Dados deste Dispositivo
+                  </h4>
+                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {conflictData.localDate.toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                <div className={`text-sm space-y-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p>• Tarefas: {conflictData.local.tasks.length}</p>
+                  <p>• Transações: {conflictData.local.transactions.length}</p>
+                  <p>• Trabalhos: {conflictData.local.jobs.length}</p>
+                  <p>• Tags: {conflictData.local.tags.length}</p>
+                  <p>• Pessoas: {conflictData.local.people.length}</p>
+                  <p>• Cartões: {conflictData.local.creditCards.length}</p>
+                </div>
+              </div>
+
+              {/* Dados da Nuvem */}
+              <div className={`p-4 rounded-lg border-2 ${darkMode ? 'bg-gray-700 border-green-500' : 'bg-green-50 border-green-300'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    ☁️ Dados da Nuvem
+                  </h4>
+                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Mais recente
+                  </span>
+                </div>
+                <div className={`text-sm space-y-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p>• Tarefas: {conflictData.cloud.tasks?.length || 0}</p>
+                  <p>• Transações: {conflictData.cloud.transactions?.length || 0}</p>
+                  <p>• Trabalhos: {conflictData.cloud.jobs?.length || 0}</p>
+                  <p>• Tags: {conflictData.cloud.tags?.length || 0}</p>
+                  <p>• Pessoas: {conflictData.cloud.people?.length || 0}</p>
+                  <p>• Cartões: {conflictData.cloud.creditCards?.length || 0}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className={`p-3 rounded-lg mb-4 text-sm ${darkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'}`}>
+              <strong>⚠️ Importante:</strong> A versão não escolhida será sobrescrita e perdida permanentemente.
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={useLocalData}
+                className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+              >
+                📱 Usar Dados Locais
+              </button>
+              <button
+                onClick={useCloudData}
+                className="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
+              >
+                ☁️ Usar Dados da Nuvem
+              </button>
+            </div>
+
+            <p className={`text-xs text-center mt-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Dica: Geralmente os dados locais são mais recentes se você acabou de usar o app offline
+            </p>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         @keyframes slide-in {
           from {
