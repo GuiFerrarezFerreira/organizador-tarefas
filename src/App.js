@@ -89,6 +89,9 @@ export default function App() {
     ];
   });
 
+const [showConflictModal, setShowConflictModal] = useState(false);
+const [conflictData, setConflictData] = useState(null);
+
   const [newJobName, setNewJobName] = useState('');
   const [newTagName, setNewTagName] = useState('');
   const [newFinanceCategoryName, setNewFinanceCategoryName] = useState('');
