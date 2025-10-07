@@ -1316,6 +1316,7 @@ const getCreditCardName = (cardId) => {
 {activeTab === 'finance' && (
   <div>
     {/* Botões de controle */}
+    <div className="mb-6 flex items-center justify-between">
 <div className="flex gap-2">
   <button
     onClick={() => {
