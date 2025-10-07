@@ -1786,66 +1786,80 @@ const getCreditCardName = (cardId) => {
                 </div>
               )}
               
-              {sortedTasks.map(task => (
-                <div
-                  key={task.id}
-                  className={`rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow ${
-                    darkMode ? 'bg-gray-800' : 'bg-white'
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <input
-                      type="checkbox"
-                      checked={task.completed}
-                      onChange={() => toggleTask(task.id)}
-                      className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getJobColor(task.jobId)}`}>
-                          {getJobName(task.jobId)}
-                        </span>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {task.type}
-                        </span>
-                        {task.tags && task.tags.length > 0 && (
-                          <>
-                            {task.tags.map(tagId => (
-                              <span key={tagId} className={`px-2 py-1 rounded text-xs font-medium ${getTagColor(tagId)}`}>
-                                <Tag size={10} className="inline mr-1" />
-                                {getTagName(tagId)}
-                              </span>
-                            ))}
-                          </>
-                        )}
-                      </div>
-                      <p className={`mb-2 ${task.completed 
-                        ? `line-through ${darkMode ? 'text-gray-500' : 'text-gray-400'}` 
-                        : `${darkMode ? 'text-gray-200' : 'text-gray-800'}`
-                      }`}>
-                        {task.title}
-                      </p>
-                      <div className={`flex items-center gap-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        <span className="flex items-center gap-1">
-                          <Calendar size={14} />
-                          {new Date(task.date + 'T00:00:00').toLocaleDateString('pt-BR')}
-                        </span>
-                        {task.time && <span>{task.time}</span>}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className={`transition-colors ${
-                        darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
-                      }`}
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                </div>
+{sortedTasks.map(task => (
+  <div
+    key={task.id}
+    className={`rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow ${
+      darkMode ? 'bg-gray-800' : 'bg-white'
+    }`}
+  >
+    <div className="flex items-start gap-4">
+      <input
+        type="checkbox"
+        checked={task.completed}
+        onChange={() => toggleTask(task.id)}
+        className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+      />
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <span className={`px-2 py-1 rounded text-xs font-medium ${getJobColor(task.jobId)}`}>
+            {getJobName(task.jobId)}
+          </span>
+          <span className={`px-2 py-1 rounded text-xs ${
+            darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+          }`}>
+            {task.type}
+          </span>
+          {task.tags && task.tags.length > 0 && (
+            <>
+              {task.tags.map(tagId => (
+                <span key={tagId} className={`px-2 py-1 rounded text-xs font-medium ${getTagColor(tagId)}`}>
+                  <Tag size={10} className="inline mr-1" />
+                  {getTagName(tagId)}
+                </span>
               ))}
+            </>
+          )}
+        </div>
+        <p className={`mb-2 ${task.completed 
+          ? `line-through ${darkMode ? 'text-gray-500' : 'text-gray-400'}` 
+          : `${darkMode ? 'text-gray-200' : 'text-gray-800'}`
+        }`}>
+          {task.title}
+        </p>
+        <div className={`flex items-center gap-3 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <span className="flex items-center gap-1">
+            <Calendar size={14} />
+            {new Date(task.date + 'T00:00:00').toLocaleDateString('pt-BR')}
+          </span>
+          {task.time && <span>{task.time}</span>}
+        </div>
+      </div>
+      
+      {/* SUBSTITUIR O BOTÃO ÚNICO POR ESTA DIV COM 2 BOTÕES */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => startEditTask(task)}
+          className={`transition-colors ${
+            darkMode ? 'text-gray-500 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'
+          }`}
+          title="Editar tarefa"
+        >
+          <Edit2 size={18} />
+        </button>
+        <button
+          onClick={() => deleteTask(task.id)}
+          className={`transition-colors ${
+            darkMode ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'
+          }`}
+          title="Excluir tarefa"
+        >
+          <X size={20} />
+        </button>
+      </div>
+    </div>
+  </div>
+))}
 
               {sortedTasks.length === 0 && (
                 <div className={`rounded-lg p-12 text-center ${
