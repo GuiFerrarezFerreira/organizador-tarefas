@@ -1360,23 +1360,17 @@ const getCreditCardName = (cardId) => {
     </div>
 
     {/* Renderização condicional */}
-{showFinanceByCard ? (
-  <FinanceByCard
-    transactions={sortedTransactions}
-    creditCards={creditCards}
-    people={people}
-    darkMode={darkMode}
-  />
-) : showFinanceByPerson ? (
-  <FinanceByPerson
-    transactions={sortedTransactions}
-    people={people}
-    darkMode={darkMode}
-  />
-) : (
-  // Visualização normal (lista)
-  <>
-    <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
+    {showFinanceByPerson ? (
+      // NOVO: Mostra relatório por pessoa
+      <FinanceByPerson
+        transactions={sortedTransactions}
+        people={people}
+        darkMode={darkMode}
+      />
+    ) : (
+      // Visualização normal (lista)
+      <>
+        <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
 
         <FinanceList
           transactions={sortedTransactions}
