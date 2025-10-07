@@ -6,6 +6,9 @@ import FinanceList from './components/FinanceList';
 import FinanceForm from './components/FinanceForm';
 import FinanceByPerson from './components/FinanceByPerson';  
 import FinanceByCard from './components/FinanceByCard';
+import TaskEditModal from './components/TaskEditModal';
+import TransactionEditModal from './components/TransactionEditModal';
+import { Edit2 } from 'lucide-react';
 
 
 export default function App() {
@@ -21,6 +24,11 @@ export default function App() {
   const [showSetup, setShowSetup] = useState(false);
   const [showFinanceByPerson, setShowFinanceByPerson] = useState(false);
   const [showFinanceByCard, setShowFinanceByCard] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [editedTask, setEditedTask] = useState(null);
+  const [selectedEditTags, setSelectedEditTags] = useState([]);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [editedTransaction, setEditedTransaction] = useState(null);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
