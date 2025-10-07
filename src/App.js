@@ -158,6 +158,7 @@ const [creditCards, setCreditCards] = useState(() => {
 
   const [newTask, setNewTask] = useState({
     title: '',
+    description: '',
     jobId: jobs[0]?.id || 1,
     type: 'projeto',
     date: new Date().toISOString().split('T')[0],
@@ -729,6 +730,7 @@ const useLocalData = async () => {
       }]);
       setNewTask({
         title: '',
+        description: '',
         jobId: jobs[0]?.id || 1,
         type: 'projeto',
         date: new Date().toISOString().split('T')[0],
