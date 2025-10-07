@@ -1314,50 +1314,50 @@ const getCreditCardName = (cardId) => {
         </div>
 
 {activeTab === 'finance' && (
-    <div className="flex gap-2">
-      <button
-        onClick={() => {
-          setShowFinanceByPerson(false);
-          setShowFinanceByCard(!showFinanceByCard);
-        }}
-        className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-          showFinanceByCard
-            ? 'bg-indigo-500 text-white'
-            : darkMode 
-            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-        }`}
-      >
-        {showFinanceByCard ? '📊 Ver Lista' : '💳 Por Cartão'}
-      </button>
+<div className="flex gap-2">
+  <button
+    onClick={() => {
+      setShowFinanceByPerson(false);
+      setShowFinanceByCard(!showFinanceByCard);
+    }}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      showFinanceByCard
+        ? 'bg-indigo-500 text-white'
+        : darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    {showFinanceByCard ? '📊 Ver Lista' : '💳 Por Cartão'}
+  </button>
 
-      <button
-        onClick={() => {
-          setShowFinanceByCard(false);
-          setShowFinanceByPerson(!showFinanceByPerson);
-        }}
-        className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-          showFinanceByPerson
-            ? 'bg-purple-500 text-white'
-            : darkMode 
-            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-        }`}
-      >
-        {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
-      </button>
+  <button
+    onClick={() => {
+      setShowFinanceByCard(false);
+      setShowFinanceByPerson(!showFinanceByPerson);
+    }}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      showFinanceByPerson
+        ? 'bg-purple-500 text-white'
+        : darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
+  </button>
 
-      <button
-        onClick={() => setShowManageFinanceCategories(true)}
-        className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-          darkMode 
-            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-        }`}
-      >
-        Gerenciar Categorias
-      </button>
-    </div>
+  <button
+    onClick={() => setShowManageFinanceCategories(true)}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    Gerenciar Categorias
+  </button>
+</div>
 
     {/* Renderização condicional */}
     {showFinanceByPerson ? (
