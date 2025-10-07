@@ -5,7 +5,7 @@ import FinanceSummary from './components/FinanceSummary';
 import FinanceList from './components/FinanceList';
 import FinanceForm from './components/FinanceForm';
 import FinanceByPerson from './components/FinanceByPerson';  
-
+import FinanceByCard from './components/FinanceByCard';
 
 
 export default function App() {
@@ -20,6 +20,7 @@ export default function App() {
   const [showManageFinanceCategories, setShowManageFinanceCategories] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showFinanceByPerson, setShowFinanceByPerson] = useState(false);
+  const [showFinanceByCard, setShowFinanceByCard] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -1313,94 +1314,69 @@ const getCreditCardName = (cardId) => {
         </div>
 
 {activeTab === 'finance' && (
-  <div>
-    {/* Botões de controle */}
-    <div className="mb-6 flex items-center justify-between">
-      <div className="flex gap-2">
-        <button
-          onClick={() => setViewMode('daily')}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-            viewMode === 'daily'
-              ? 'bg-blue-500 text-white'
-              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
-          }`}
-        >
-          Hoje
-        </button>
-        <button
-          onClick={() => setViewMode('weekly')}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-            viewMode === 'weekly'
-              ? 'bg-blue-500 text-white'
-              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
-          }`}
-        >
-          Esta Semana
-        </button>
-        <button
-          onClick={() => setViewMode('monthly')}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-            viewMode === 'monthly'
-              ? 'bg-blue-500 text-white'
-              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100'}`
-          }`}
-        >
-          Este Mês
-        </button>
-        {viewMode === 'monthly' && (
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className={`px-4 py-2 rounded-lg text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              darkMode 
-                ? 'bg-gray-800 border-gray-600 text-gray-200' 
-                : 'bg-white border-gray-300 text-gray-800'
-            }`}
-          />
-        )}
-      </div>
+    <div className="flex gap-2">
+      <button
+        onClick={() => {
+          setShowFinanceByPerson(false);
+          setShowFinanceByCard(!showFinanceByCard);
+        }}
+        className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+          showFinanceByCard
+            ? 'bg-indigo-500 text-white'
+            : darkMode 
+            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        {showFinanceByCard ? '📊 Ver Lista' : '💳 Por Cartão'}
+      </button>
 
-      <div className="flex gap-2">
-        {/* NOVO: Botão para alternar visualização */}
-        <button
-          onClick={() => setShowFinanceByPerson(!showFinanceByPerson)}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-            showFinanceByPerson
-              ? 'bg-purple-500 text-white'
-              : darkMode 
-              ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
-        </button>
+      <button
+        onClick={() => {
+          setShowFinanceByCard(false);
+          setShowFinanceByPerson(!showFinanceByPerson);
+        }}
+        className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+          showFinanceByPerson
+            ? 'bg-purple-500 text-white'
+            : darkMode 
+            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
+      </button>
 
-        <button
-          onClick={() => setShowManageFinanceCategories(true)}
-          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-            darkMode 
-              ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          Gerenciar Categorias
-        </button>
-      </div>
+      <button
+        onClick={() => setShowManageFinanceCategories(true)}
+        className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+          darkMode 
+            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        Gerenciar Categorias
+      </button>
     </div>
 
     {/* Renderização condicional */}
-    {showFinanceByPerson ? (
-      // NOVO: Mostra relatório por pessoa
-      <FinanceByPerson
-        transactions={sortedTransactions}
-        people={people}
-        darkMode={darkMode}
-      />
-    ) : (
-      // Visualização normal (lista)
-      <>
-        <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
+{showFinanceByCard ? (
+  <FinanceByCard
+    transactions={sortedTransactions}
+    creditCards={creditCards}
+    people={people}
+    darkMode={darkMode}
+  />
+) : showFinanceByPerson ? (
+  <FinanceByPerson
+    transactions={sortedTransactions}
+    people={people}
+    darkMode={darkMode}
+  />
+) : (
+  // Visualização normal (lista)
+  <>
+    <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
 
         <FinanceList
           transactions={sortedTransactions}
