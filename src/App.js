@@ -1499,6 +1499,7 @@ const getCreditCardName = (cardId) => {
           transactions={sortedTransactions}
           onToggle={toggleTransaction}
           onDelete={deleteTransaction}
+          onEdit={startEditTransaction}
           getCategoryColor={getCategoryColor}
           getCategoryName={getCategoryName}
           getJobName={getJobName}
