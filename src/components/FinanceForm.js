@@ -11,20 +11,25 @@ export default function FinanceForm({
   onCancel, 
   darkMode 
 }) {
-  const formatCurrencyInput = (value) => {
-    const numbers = value.replace(/\D/g, '');
-    const cents = parseInt(numbers) || 0;
-    return (cents / 100).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
+ const formatCurrencyInput = (value) => {
+  // Remove tudo exceto números
+  const numbers = value.replace(/\D/g, '');
+  // Converte para centavos (sem parseInt que limita o valor)
+  const cents = Number(numbers) || 0;
+  // Formata para BRL
+  return (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
 
-  const handleAmountChange = (e) => {
-    const formatted = formatCurrencyInput(e.target.value);
-    const cents = Math.round(parseFloat(formatted.replace(',', '.')) * 100);
-    setNewTransaction({ ...newTransaction, amount: cents });
-  };
+const handleAmountChange = (e) => {
+  const formatted = formatCurrencyInput(e.target.value);
+  // Remove separadores de milhar e substitui vírgula por ponto
+  const cleanValue = formatted.replace(/\./g, '').replace(',', '.');
+  const cents = Math.round(parseFloat(cleanValue) * 100);
+  setNewTransaction({ ...newTransaction, amount: cents });
+};
 
   const filteredCategories = categories.filter(cat => 
     cat.type === newTransaction.type || cat.type === 'ambos'
