@@ -1,11 +1,12 @@
 import React from 'react';
-import { X, Calendar, Briefcase, CheckCircle, Clock } from 'lucide-react';
+import { X, Calendar, Briefcase, CheckCircle, Clock, Edit2 } from 'lucide-react';
 
 
 export default function FinanceList({ 
   transactions, 
   onToggle, 
-  onDelete, 
+  onDelete,
+  onEdit,
   getCategoryColor, 
   getCategoryName,
   getJobName,
@@ -128,7 +129,7 @@ export default function FinanceList({
             
             <div className="flex gap-2">
               <button
-                onClick={() => startEditTransaction(transaction)}
+                onClickonClick={() => onEdit(transaction)}
                 className={`transition-colors ${
                   darkMode ? 'text-gray-500 hover:text-blue-400' : 'text-gray-400 hover:text-blue-500'
                 }`}
