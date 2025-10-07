@@ -1313,54 +1313,104 @@ const getCreditCardName = (cardId) => {
           </div>
         </div>
 
+
 {activeTab === 'finance' && (
   <div>
     {/* Botões de controle */}
-    <div className="mb-6 flex items-center justify-between">
-<div className="flex gap-2">
-  <button
-    onClick={() => {
-      setShowFinanceByPerson(false);
-      setShowFinanceByCard(!showFinanceByCard);
-    }}
-    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-      showFinanceByCard
-        ? 'bg-indigo-500 text-white'
-        : darkMode 
-        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-    }`}
-  >
-    {showFinanceByCard ? '📊 Ver Lista' : '💳 Por Cartão'}
-  </button>
+    <div className="mb-6 space-y-3">
+      {/* Botões de visualização e período */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => {
+              setShowFinanceByPerson(false);
+              setShowFinanceByCard(!showFinanceByCard);
+            }}
+            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+              showFinanceByCard
+                ? 'bg-indigo-500 text-white'
+                : darkMode 
+                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {showFinanceByCard ? '📊 Ver Lista' : '💳 Por Cartão'}
+          </button>
 
-  <button
-    onClick={() => {
-      setShowFinanceByCard(false);
-      setShowFinanceByPerson(!showFinanceByPerson);
-    }}
-    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-      showFinanceByPerson
-        ? 'bg-purple-500 text-white'
-        : darkMode 
-        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-    }`}
-  >
-    {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
-  </button>
+          <button
+            onClick={() => {
+              setShowFinanceByCard(false);
+              setShowFinanceByPerson(!showFinanceByPerson);
+            }}
+            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+              showFinanceByPerson
+                ? 'bg-purple-500 text-white'
+                : darkMode 
+                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
+          </button>
 
-  <button
-    onClick={() => setShowManageFinanceCategories(true)}
-    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-      darkMode 
-        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-    }`}
-  >
-    Gerenciar Categorias
-  </button>
-</div>
+          <button
+            onClick={() => setShowManageFinanceCategories(true)}
+            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+              darkMode 
+                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            Gerenciar Categorias
+          </button>
+        </div>
+      </div>
+
+      {/* Seletor de período */}
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={() => setViewMode('daily')}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            viewMode === 'daily'
+              ? 'bg-blue-500 text-white'
+              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-300'}`
+          }`}
+        >
+          Hoje
+        </button>
+        <button
+          onClick={() => setViewMode('weekly')}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            viewMode === 'weekly'
+              ? 'bg-blue-500 text-white'
+              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-300'}`
+          }`}
+        >
+          Esta Semana
+        </button>
+        <button
+          onClick={() => setViewMode('monthly')}
+          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+            viewMode === 'monthly'
+              ? 'bg-blue-500 text-white'
+              : `${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-300'}`
+          }`}
+        >
+          Este Mês
+        </button>
+        {viewMode === 'monthly' && (
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className={`px-4 py-2 rounded-lg text-sm border focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              darkMode 
+                ? 'bg-gray-800 border-gray-600 text-gray-200' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          />
+        )}
+      </div>
     </div>
 
     {/* Renderização condicional */}
