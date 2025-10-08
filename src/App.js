@@ -8,6 +8,8 @@ import FinanceByPerson from './components/FinanceByPerson';
 import FinanceByCard from './components/FinanceByCard';
 import TaskEditModal from './components/TaskEditModal';
 import TransactionEditModal from './components/TransactionEditModal';
+import FinanceByCardDetailed from './components/FinanceByCardDetailed';
+import FinanceByPersonDetailed from './components/FinanceByPersonDetailed';
 import { Edit2 } from 'lucide-react';
 
 
@@ -29,6 +31,8 @@ export default function App() {
   const [selectedEditTags, setSelectedEditTags] = useState([]);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [editedTransaction, setEditedTransaction] = useState(null);
+  const [showFinanceByCardDetailed, setShowFinanceByCardDetailed] = useState(false);
+  const [showFinanceByPersonDetailed, setShowFinanceByPersonDetailed] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -1386,50 +1390,90 @@ const getCreditCardName = (cardId) => {
     <div className="mb-6 space-y-3">
       {/* Botões de visualização e período */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => {
-              setShowFinanceByPerson(false);
-              setShowFinanceByCard(!showFinanceByCard);
-            }}
-            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-              showFinanceByCard
-                ? 'bg-indigo-500 text-white'
-                : darkMode 
-                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-                : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {showFinanceByCard ? '📊 Ver Lista' : '💳 Por Cartão'}
-          </button>
+<div className="flex gap-2 flex-wrap">
+  <button
+    onClick={() => {
+      setShowFinanceByPerson(false);
+      setShowFinanceByPersonDetailed(false);
+      setShowFinanceByCard(!showFinanceByCard);
+      setShowFinanceByCardDetailed(false);
+    }}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      showFinanceByCard
+        ? 'bg-indigo-500 text-white'
+        : darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    💳 Resumo por Cartão
+  </button>
 
-          <button
-            onClick={() => {
-              setShowFinanceByCard(false);
-              setShowFinanceByPerson(!showFinanceByPerson);
-            }}
-            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-              showFinanceByPerson
-                ? 'bg-purple-500 text-white'
-                : darkMode 
-                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-                : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {showFinanceByPerson ? '📊 Ver Lista' : '👥 Por Pessoa'}
-          </button>
+  <button
+    onClick={() => {
+      setShowFinanceByPerson(false);
+      setShowFinanceByPersonDetailed(false);
+      setShowFinanceByCard(false);
+      setShowFinanceByCardDetailed(!showFinanceByCardDetailed);
+    }}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      showFinanceByCardDetailed
+        ? 'bg-indigo-500 text-white'
+        : darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    📋 Lista por Cartão
+  </button>
 
-          <button
-            onClick={() => setShowManageFinanceCategories(true)}
-            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-              darkMode 
-                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-                : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Gerenciar Categorias
-          </button>
-        </div>
+  <button
+    onClick={() => {
+      setShowFinanceByCard(false);
+      setShowFinanceByCardDetailed(false);
+      setShowFinanceByPersonDetailed(false);
+      setShowFinanceByPerson(!showFinanceByPerson);
+    }}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      showFinanceByPerson
+        ? 'bg-purple-500 text-white'
+        : darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    👥 Resumo por Pessoa
+  </button>
+
+  <button
+    onClick={() => {
+      setShowFinanceByCard(false);
+      setShowFinanceByCardDetailed(false);
+      setShowFinanceByPerson(false);
+      setShowFinanceByPersonDetailed(!showFinanceByPersonDetailed);
+    }}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      showFinanceByPersonDetailed
+        ? 'bg-purple-500 text-white'
+        : darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    📋 Lista por Pessoa
+  </button>
+
+  <button
+    onClick={() => setShowManageFinanceCategories(true)}
+    className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+      darkMode 
+        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+        : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+    }`}
+  >
+    Gerenciar Categorias
+  </button>
+</div>
       </div>
 
       {/* Seletor de período */}
@@ -1480,7 +1524,26 @@ const getCreditCardName = (cardId) => {
     </div>
 
     {/* Renderização condicional */}
-{showFinanceByCard ? (
+{showFinanceByCardDetailed ? (
+  <FinanceByCardDetailed
+    transactions={sortedTransactions}
+    creditCards={creditCards}
+    people={people}
+    getCategoryName={getCategoryName}
+    getCategoryColor={getCategoryColor}
+    darkMode={darkMode}
+  />
+) : showFinanceByPersonDetailed ? (
+  <FinanceByPersonDetailed
+    transactions={sortedTransactions}
+    people={people}
+    getCategoryName={getCategoryName}
+    getCategoryColor={getCategoryColor}
+    getJobName={getJobName}
+    getCreditCardName={getCreditCardName}
+    darkMode={darkMode}
+  />
+) : showFinanceByCard ? (
   <FinanceByCard
     transactions={sortedTransactions}
     creditCards={creditCards}
@@ -1492,7 +1555,8 @@ const getCreditCardName = (cardId) => {
     transactions={sortedTransactions}
     people={people}
     darkMode={darkMode}
-  />    ) : (
+  />
+) : (
       // Visualização normal (lista)
       <>
         <FinanceSummary transactions={sortedTransactions} darkMode={darkMode} />
