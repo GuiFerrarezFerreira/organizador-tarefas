@@ -2200,170 +2200,98 @@ const getCreditCardName = (cardId) => {
           </div>
         </div>
       )}
+{showSetup && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className={`rounded-lg p-6 max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+        Conectar ao Supabase
+      </h3>
+      
+      {isOnline ? (
+        <div className="space-y-4">
+          <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900 text-green-200' : 'bg-green-50 text-green-800'}`}>
+            <p className="font-medium mb-1">✓ Conectado</p>
+            <p className="text-sm opacity-80">Email: {userEmail}</p>
+          </div>
+          
+          <button
+            onClick={() => {
+              localStorage.removeItem('supabaseAuth');
+              setIsOnline(false);
+              setUserEmail('');
+              setUserId('');
+            }}
+            className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors font-medium"
+          >
+            Desconectar
+          </button>
+          
+          <button
+            onClick={() => setShowSetup(false)}
+            className={`w-full py-3 rounded-lg transition-colors ${
+              darkMode 
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Fechar
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {syncError && (
+            <div className={`p-3 rounded-lg ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-50 text-red-800'}`}>
+              <p className="text-sm">{syncError}</p>
+            </div>
+          )}
 
-      {showSetup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className={`rounded-lg p-6 max-w-2xl w-full my-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <h3 className={`text-xl font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Configurar Sincronização na Nuvem
-            </h3>
-            
-            {firebaseConfig ? (
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900 text-green-200' : 'bg-green-50 text-green-800'}`}>
-                  <p className="font-medium mb-1">✓ Conectado à nuvem</p>
-                  <p className="text-sm opacity-80">Email: {userEmail}</p>
-                  <p className="text-sm opacity-80">Projeto: {firebaseConfig.projectId}</p>
-                </div>
-                
-                <button
-                  onClick={disconnectFirebase}
-                  className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors font-medium"
-                >
-                  Desconectar
-                </button>
-                
-                <button
-                  onClick={() => setShowSetup(false)}
-                  className={`w-full py-3 rounded-lg transition-colors ${
-                    darkMode 
-                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Fechar
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg text-sm ${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-800'}`}>
-                  <p className="font-medium mb-2">📝 Como configurar:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Acesse <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="underline">console.firebase.google.com</a></li>
-                    <li>No Firebase Console, vá em "Configurações do projeto" → "Geral"</li>
-                    <li>Role até "Seus aplicativos" e clique no ícone Web</li>
-                    <li>Copie as configurações e cole abaixo</li>
-                    <li>Em "Authentication", ative "Email/Password"</li>
-                    <li>Em "Firestore Database", crie um banco de dados</li>
-                    <li>Em "Authentication" → "Users", adicione um usuário</li>
-                  </ol>
-                </div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={configForm.email}
+            onChange={(e) => setConfigForm({...configForm, email: e.target.value})}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+              darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+            }`}
+          />
+          
+          <input
+            type="password"
+            placeholder="Senha"
+            value={configForm.password}
+            onChange={(e) => setConfigForm({...configForm, password: e.target.value})}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+              darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+            }`}
+          />
 
-                {syncError && (
-                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-red-900 text-red-200' : 'bg-red-50 text-red-800'}`}>
-                    <p className="text-sm">{syncError}</p>
-                  </div>
-                )}
-
-                <input
-                  type="text"
-                  placeholder="API Key"
-                  value={configForm.apiKey}
-                  onChange={(e) => setConfigForm({...configForm, apiKey: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Auth Domain (ex: meu-app.firebaseapp.com)"
-                  value={configForm.authDomain}
-                  onChange={(e) => setConfigForm({...configForm, authDomain: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Project ID"
-                  value={configForm.projectId}
-                  onChange={(e) => setConfigForm({...configForm, projectId: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Storage Bucket"
-                  value={configForm.storageBucket}
-                  onChange={(e) => setConfigForm({...configForm, storageBucket: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="Messaging Sender ID"
-                  value={configForm.messagingSenderId}
-                  onChange={(e) => setConfigForm({...configForm, messagingSenderId: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-                
-                <input
-                  type="text"
-                  placeholder="App ID"
-                  value={configForm.appId}
-                  onChange={(e) => setConfigForm({...configForm, appId: e.target.value})}
-                  className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                  }`}
-                />
-
-                <div className={`border-t pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Credenciais de acesso (usuário do Firebase):</p>
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={configForm.email}
-                    onChange={(e) => setConfigForm({...configForm, email: e.target.value})}
-                    className={`w-full px-4 py-2 text-sm border rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                    }`}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Senha"
-                    value={configForm.password}
-                    onChange={(e) => setConfigForm({...configForm, password: e.target.value})}
-                    className={`w-full px-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
-                    }`}
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={saveFirebaseConfig}
-                    disabled={isSyncing}
-                    className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {isSyncing ? 'Conectando...' : 'Conectar'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowSetup(false);
-                      setSyncError('');
-                    }}
-                    className={`px-6 py-3 rounded-lg transition-colors ${
-                      darkMode 
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            )}
+          <div className="flex gap-3">
+            <button
+              onClick={saveFirebaseConfig}
+              disabled={isSyncing}
+              className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50"
+            >
+              {isSyncing ? 'Conectando...' : 'Conectar'}
+            </button>
+            <button
+              onClick={() => {
+                setShowSetup(false);
+                setSyncError('');
+              }}
+              className={`px-6 py-3 rounded-lg transition-colors ${
+                darkMode 
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}
+    </div>
+  </div>
+)}
 
 {showManagePeople && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
