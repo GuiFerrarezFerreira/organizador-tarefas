@@ -1,6 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag, Search, Filter, SlidersHorizontal, DollarSign, TrendingUp, TrendingDown, Clock } from 'lucide-react';
-import { initializeFirebase, loginUser, saveTasks, saveJobs, loadTasks, loadJobs, subscribeToTasks, subscribeToJobs, saveTags, loadTags, subscribeToTags, saveTransactions, loadTransactions, subscribeToTransactions, saveFinanceCategories, loadFinanceCategories, subscribeToFinanceCategories, savePeople, loadPeople, subscribeToPeople, saveCreditCards, loadCreditCards, subscribeToCreditCards } from './firebase';
+import { 
+  loginUser, 
+  saveTasks, 
+  loadTasks, 
+  subscribeToTasks,
+  saveJobs, 
+  loadJobs, 
+  subscribeToJobs,
+  saveTags, 
+  loadTags, 
+  subscribeToTags,
+  saveTransactions, 
+  loadTransactions, 
+  subscribeToTransactions,
+  saveFinanceCategories, 
+  loadFinanceCategories, 
+  subscribeToFinanceCategories,
+  savePeople, 
+  loadPeople, 
+  subscribeToPeople,
+  saveCreditCards, 
+  loadCreditCards, 
+  subscribeToCreditCards,
+  getCurrentUser
+} from './supabase';
 import FinanceSummary from './components/FinanceSummary';
 import FinanceList from './components/FinanceList';
 import FinanceForm from './components/FinanceForm';
