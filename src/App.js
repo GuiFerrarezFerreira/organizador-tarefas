@@ -59,6 +59,7 @@ export default function App() {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+
   
   const [firebaseConfig, setFirebaseConfig] = useState(() => {
     const saved = localStorage.getItem('firebaseConfig');
