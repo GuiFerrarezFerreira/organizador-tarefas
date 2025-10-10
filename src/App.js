@@ -315,84 +315,49 @@ useEffect(() => {
   }, [firebaseConfig, userId]);
 
 const initializeAndSync = async () => {
-  const result = initializeFirebase(firebaseConfig);
-  
-  if (!result.success) {
-    addNotification(result.error, 'error');
-    return;
-  }
-  
   setIsOnline(true);
-  
-  // IMPORTANTE: Desabilitar atualizações locais temporariamente
   setIsLoaded(false);
   
   try {
-    // Carregar dados da nuvem
-    const tasksResult = await loadTasks(userId);
-    const jobsResult = await loadJobs(userId);
-    const tagsResult = await loadTags(userId);
-    const transactionsResult = await loadTransactions(userId);
-    const financeCategoriesResult = await loadFinanceCategories(userId);
-    const peopleResult = await loadPeople(userId);
-    const creditCardsResult = await loadCreditCards(userId);
+    const tasksResult = await loadTasks();
+    const jobsResult = await loadJobs();
+    const tagsResult = await loadTags();
+    const transactionsResult = await loadTransactions();
+    const financeCategoriesResult = await loadFinanceCategories();
+    const peopleResult = await loadPeople();
+    const creditCardsResult = await loadCreditCards();
     
-    // Verificar conflitos comparando timestamps
-    const localLastModified = localStorage.getItem('lastModified');
-    const cloudHasNewerData = tasksResult.data || jobsResult.data || tagsResult.data || 
-                              transactionsResult.data || financeCategoriesResult.data ||
-                              peopleResult.data || creditCardsResult.data;
-    
-    // Se há dados locais E dados na nuvem, verificar qual é mais recente
-    if (localLastModified && cloudHasNewerData) {
-      const localDate = new Date(localLastModified);
-      const currentLocalData = {
-        tasks,
-        jobs,
-        tags,
-        transactions,
-        financeCategories,
-        people,
-        creditCards
-      };
-      
-      const cloudData = {
-        tasks: tasksResult.data,
-        jobs: jobsResult.data,
-        tags: tagsResult.data,
-        transactions: transactionsResult.data,
-        financeCategories: financeCategoriesResult.data,
-        people: peopleResult.data,
-        creditCards: creditCardsResult.data
-      };
-      
-      // Mostrar modal de conflito
-      setConflictData({
-        local: currentLocalData,
-        cloud: cloudData,
-        localDate: localDate
-      });
-      setShowConflictModal(true);
-      setIsLoaded(true);
-      return; // Parar aqui e esperar decisão do usuário
+    // Carregar dados
+    if (tasksResult.success && tasksResult.data) {
+      setTasks(tasksResult.data);
+    }
+    if (jobsResult.success && jobsResult.data) {
+      setJobs(jobsResult.data);
+    }
+    if (tagsResult.success && tagsResult.data) {
+      setTags(tagsResult.data);
+    }
+    if (transactionsResult.success && transactionsResult.data) {
+      setTransactions(transactionsResult.data);
+    }
+    if (financeCategoriesResult.success && financeCategoriesResult.data) {
+      setFinanceCategories(financeCategoriesResult.data);
+    }
+    if (peopleResult.success && peopleResult.data) {
+      setPeople(peopleResult.data);
+    }
+    if (creditCardsResult.success && creditCardsResult.data) {
+      setCreditCards(creditCardsResult.data);
     }
     
-    // Se não há conflito, carregar dados normalmente
-    await loadCloudData(tasksResult, jobsResult, tagsResult, transactionsResult, 
-                        financeCategoriesResult, peopleResult, creditCardsResult);
-    
     addNotification('Dados sincronizados com sucesso', 'success');
-    
+    setupRealtimeListeners();
   } catch (error) {
-    console.error('Erro ao carregar dados da nuvem:', error);
-    addNotification('Usando dados locais', 'info');
+    console.error('Erro ao carregar dados:', error);
+    addNotification('Erro ao sincronizar', 'error');
   }
   
-  // Agora pode habilitar sincronização
   setIsLoaded(true);
-  
-  // Configurar listeners de sincronização em tempo real
-  setupRealtimeListeners();
 };
 
 const loadCloudData = async (tasksResult, jobsResult, tagsResult, transactionsResult, 
@@ -451,89 +416,40 @@ const loadCloudData = async (tasksResult, jobsResult, tagsResult, transactionsRe
 };
 
 const setupRealtimeListeners = () => {
-  const unsubscribeTasks = subscribeToTasks(
-    userId,
-    (newTasks) => {
-      setTasks(newTasks);
-      localStorage.setItem('tasks', JSON.stringify(newTasks));
-      localStorage.setItem('lastModified', new Date().toISOString());
-    },
-    (error) => {
-      addNotification(error, 'error');
-    }
-  );
+  const unsubscribeTasks = subscribeToTasks((newTasks) => {
+    setTasks(newTasks);
+    localStorage.setItem('tasks', JSON.stringify(newTasks));
+  });
   
-  const unsubscribeJobs = subscribeToJobs(
-    userId,
-    (newJobs) => {
-      setJobs(newJobs);
-      localStorage.setItem('jobs', JSON.stringify(newJobs));
-      localStorage.setItem('lastModified', new Date().toISOString());
-    },
-    (error) => {
-      addNotification(error, 'error');
-    }
-  );
+  const unsubscribeJobs = subscribeToJobs((newJobs) => {
+    setJobs(newJobs);
+    localStorage.setItem('jobs', JSON.stringify(newJobs));
+  });
 
-  const unsubscribeTags = subscribeToTags(
-    userId,
-    (newTags) => {
-      setTags(newTags);
-      localStorage.setItem('tags', JSON.stringify(newTags));
-      localStorage.setItem('lastModified', new Date().toISOString());
-    },
-    (error) => {
-      addNotification(error, 'error');
-    }
-  );
+  const unsubscribeTags = subscribeToTags((newTags) => {
+    setTags(newTags);
+    localStorage.setItem('tags', JSON.stringify(newTags));
+  });
 
-  const unsubscribeTransactions = subscribeToTransactions(
-    userId,
-    (newTransactions) => {
-      setTransactions(newTransactions);
-      localStorage.setItem('transactions', JSON.stringify(newTransactions));
-      localStorage.setItem('lastModified', new Date().toISOString());
-    },
-    (error) => {
-      addNotification(error, 'error');
-    }
-  );
+  const unsubscribeTransactions = subscribeToTransactions((newTransactions) => {
+    setTransactions(newTransactions);
+    localStorage.setItem('transactions', JSON.stringify(newTransactions));
+  });
 
-  const unsubscribeFinanceCategories = subscribeToFinanceCategories(
-    userId,
-    (newCategories) => {
-      setFinanceCategories(newCategories);
-      localStorage.setItem('financeCategories', JSON.stringify(newCategories));
-      localStorage.setItem('lastModified', new Date().toISOString());
-    },
-    (error) => {
-      addNotification(error, 'error');
-    }
-  );
+  const unsubscribeFinanceCategories = subscribeToFinanceCategories((newCategories) => {
+    setFinanceCategories(newCategories);
+    localStorage.setItem('financeCategories', JSON.stringify(newCategories));
+  });
 
-  const unsubscribePeople = subscribeToPeople(
-    userId,
-    (newPeople) => {
-      setPeople(newPeople);
-      localStorage.setItem('people', JSON.stringify(newPeople));
-      localStorage.setItem('lastModified', new Date().toISOString());
-    },
-    (error) => {
-      addNotification(error, 'error');
-    }
-  );
+  const unsubscribePeople = subscribeToPeople((newPeople) => {
+    setPeople(newPeople);
+    localStorage.setItem('people', JSON.stringify(newPeople));
+  });
 
-  const unsubscribeCreditCards = subscribeToCreditCards(
-    userId,
-    (newCards) => {
-      setCreditCards(newCards);
-      localStorage.setItem('creditCards', JSON.stringify(newCards));
-      localStorage.setItem('lastModified', new Date().toISOString());
-    },
-    (error) => {
-      addNotification(error, 'error');
-    }
-  );
+  const unsubscribeCreditCards = subscribeToCreditCards((newCards) => {
+    setCreditCards(newCards);
+    localStorage.setItem('creditCards', JSON.stringify(newCards));
+  });
   
   return () => {
     unsubscribeTasks();
@@ -605,17 +521,6 @@ const useLocalData = async () => {
   addNotification('Dados locais enviados para nuvem', 'success');
 };
 
-  useEffect(() => {
-    if (isOnline && userId && isLoaded && networkStatus) {
-      const syncTimeout = setTimeout(async () => {
-        const result = await saveTasks(userId, tasks);
-        if (!result.success) {
-          addNotification(result.error, 'warning');
-        }
-      }, 1000);
-      return () => clearTimeout(syncTimeout);
-    }
-  }, [tasks, isOnline, userId, isLoaded, networkStatus]);
 
   useEffect(() => {
     if (isOnline && userId && isLoaded && networkStatus) {
@@ -689,51 +594,44 @@ const useLocalData = async () => {
     }
   }, [creditCards, isOnline, userId, isLoaded, networkStatus]);
 
-  const saveFirebaseConfig = async () => {
+const saveFirebaseConfig = async () => {
+  setSyncError('');
+  setIsSyncing(true);
+  
+  const result = await loginUser(configForm.email, configForm.password);
+  
+  if (result.success) {
+    // Salva credenciais no localStorage
+    localStorage.setItem('supabaseAuth', JSON.stringify({
+      email: configForm.email,
+      // Não salve a senha em produção!
+    }));
+    
+    setUserEmail(configForm.email);
+    setUserId(result.user.id);
+    
+    // Salvar dados locais no Supabase
+    await saveTasks(tasks);
+    await saveJobs(jobs);
+    await saveTags(tags);
+    await saveTransactions(transactions);
+    await saveFinanceCategories(financeCategories);
+    await savePeople(people);
+    await saveCreditCards(creditCards);
+    
+    setIsOnline(true);
+    setShowSetup(false);
     setSyncError('');
-    setIsSyncing(true);
+    addNotification('Conectado com sucesso!', 'success');
     
-    const config = {
-      apiKey: configForm.apiKey,
-      authDomain: configForm.authDomain,
-      projectId: configForm.projectId,
-      storageBucket: configForm.storageBucket,
-      messagingSenderId: configForm.messagingSenderId,
-      appId: configForm.appId
-    };
-    
-    const initResult = initializeFirebase(config);
-    if (!initResult.success) {
-      setSyncError(initResult.error);
-      setIsSyncing(false);
-      return;
-    }
-    
-    const result = await loginUser(configForm.email, configForm.password);
-    if (result.success) {
-      localStorage.setItem('firebaseConfig', JSON.stringify(config));
-      setFirebaseConfig(config);
-      setUserEmail(configForm.email);
-      setUserId(result.user.uid);
-      
-      await saveTasks(result.user.uid, tasks);
-      await saveJobs(result.user.uid, jobs);
-      await saveTags(result.user.uid, tags);
-      await saveTransactions(result.user.uid, transactions);
-      await saveFinanceCategories(result.user.uid, financeCategories);
-      await savePeople(result.user.uid, people);
-      await saveCreditCards(result.user.uid, creditCards);
-      
-      setIsOnline(true);
-      setShowSetup(false);
-      setSyncError('');
-      addNotification('Conectado com sucesso!', 'success');
-    } else {
-      setSyncError(result.error);
-    }
-    
-    setIsSyncing(false);
-  };
+    // Configurar listeners
+    setupRealtimeListeners();
+  } else {
+    setSyncError(result.error);
+  }
+  
+  setIsSyncing(false);
+};
 
   const disconnectFirebase = () => {
     localStorage.removeItem('firebaseConfig');
