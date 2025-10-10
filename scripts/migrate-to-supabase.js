@@ -13,8 +13,8 @@ admin.initializeApp({
 const firestore = admin.firestore();
 
 // Supabase
-const supabaseUrl = 'https://sxfkuuqczgspvgvlnhsp.supabase.co'; // ex: https://xxxxx.supabase.co
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4Zmt1dXFjemdzcHZndmxuaHNwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDAyMTI0MywiZXhwIjoyMDc1NTk3MjQzfQ.C2bV_wQlMA6BrO4OFCMi1YHQcFqSEma9MW9jPUufvt4'; // A chave SECRETA
+const supabaseUrl = ''; // ex: https://xxxxx.supabase.co
+const supabaseServiceKey = ''; // A chave SECRETA
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // ============================================
