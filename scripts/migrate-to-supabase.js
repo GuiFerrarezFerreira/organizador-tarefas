@@ -13,7 +13,7 @@ const db = admin.firestore();
 // Configurar Supabase
 const supabase = createClient(
   'https://sxfkuuqczgspvgvlnhsp.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4Zmt1dXFjemdzcHZndmxuaHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjEyNDMsImV4cCI6MjA3NTU5NzI0M30.eGUleaUvZznvRJ5JRdWx97hLmx5NplbDft3EWAK0Tvk' // Use Service Role Key, não anon key!
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4Zmt1dXFjemdzcHZndmxuaHNwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDAyMTI0MywiZXhwIjoyMDc1NTk3MjQzfQ.C2bV_wQlMA6BrO4OFCMi1YHQcFqSEma9MW9jPUufvt4' // Use Service Role Key, não anon key!
 );
 
 async function migrate() {
