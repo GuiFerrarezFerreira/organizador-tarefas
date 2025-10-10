@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Calendar, Briefcase, Moon, Sun, Cloud, CloudOff, Wifi, WifiOff, AlertCircle, CheckCircle, Tag, Search, Filter, SlidersHorizontal, DollarSign, TrendingUp, TrendingDown, Clock } from 'lucide-react';
-import { 
-  loginUser, 
-  saveTasks, 
+import { loginUser, saveTasks, 
   loadTasks, 
   subscribeToTasks,
   saveJobs, 
